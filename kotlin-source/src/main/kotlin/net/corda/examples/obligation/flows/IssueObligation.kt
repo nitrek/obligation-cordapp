@@ -60,10 +60,10 @@ object IssueObligation {
 
             // Step 4. Get the counter-party signature.
             progressTracker.currentStep = COLLECTING
-            val lenderFlow = initiateFlow(lender)
+            val coBankerFlow = initiateFlow(coBanker)
             val stx = subFlow(CollectSignaturesFlow(
                     ptx,
-                    setOf(lenderFlow),
+                    setOf(coBankerFlow),
                     listOf(ourSigningKey),
                     COLLECTING.childProgressTracker())
             )
@@ -75,14 +75,14 @@ object IssueObligation {
 
         @Suspendable
         private fun createAnonymousObligation(): Obligation {
-            val txKeys = subFlow(SwapIdentitiesFlow(lender))
+            val txKeys = subFlow(SwapIdentitiesFlow(coBanker))
 
             check(txKeys.size == 2) { "Something went wrong when generating confidential identities." }
 
             val anonymousMe = txKeys[ourIdentity] ?: throw FlowException("Couldn't create our conf. identity.")
-            val anonymousLender = txKeys[lender] ?: throw FlowException("Couldn't create lender's conf. identity.")
+            val anonymouscoBanker = txKeys[coBanker] ?: throw FlowException("Couldn't create coBanker's conf. identity.")
 
-            return Obligation(amount, anonymousLender, anonymousMe)
+            return Obligation(amount, anonymouscoBanker, anonymousMe,"anon","anon-isin")
         }
     }
 

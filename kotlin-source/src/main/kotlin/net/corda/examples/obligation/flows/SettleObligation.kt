@@ -102,7 +102,7 @@ object SettleObligation {
             val stx = subFlow(CollectSignaturesFlow(
                     ptx,
                     setOf(session),
-                    cashSigningKeys + inputObligation.leadBankerBanker.owningKey,
+                    cashSigningKeys + inputObligation.leadBanker.owningKey,
                     COLLECTING.childProgressTracker())
             )
 

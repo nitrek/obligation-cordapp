@@ -42,9 +42,9 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
     @Path("owed-per-currency")
     @Produces(MediaType.APPLICATION_JSON)
     fun owedPerCurrency() = rpcOps.vaultQuery(Obligation::class.java).states
-            .filter { (state) -> state.data.lender != myIdentity }
-            .map { (state) -> state.data.amount }
-            .groupBy({ amount -> amount.token }, { (quantity) -> quantity })
+            .filter { (state) -> state.data.coBanker != myIdentity }
+            .map { (state) -> state.data.issueSize }
+            .groupBy({ issueSize -> issueSize.token }, { (quantity) -> quantity })
             .mapValues { it.value.sum() }
 
     @GET

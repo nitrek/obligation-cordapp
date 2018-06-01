@@ -41,7 +41,7 @@ class ObligationContract : Contract {
         "No inputs should be consumed when issuing an obligation." using (tx.inputStates.isEmpty())
         "Only one obligation state should be created when issuing an obligation." using (tx.outputStates.size == 1)
         val obligation = tx.outputsOfType<Obligation>().single()
-        "A newly issued obligation must have a positive amount." using (obligation.amount.quantity > 0)
+        "A newly issued obligation must have a positive issueSize." using (obligation.issueSize.quantity > 0)
         "The coBanker and leadBanker cannot be the same identity." using (obligation.coBanker != obligation.leadBanker)
         "Both coBanker and leadBanker together only may sign obligation issue transaction." using
                 (signers == keysFromParticipants(obligation))
@@ -76,13 +76,13 @@ class ObligationContract : Contract {
 
         // Sum the cash being sent to us (we don't care about the issuer).
         val sumAcceptableCash = acceptableCash.sumCash().withoutIssuer()
-        val amountOutstanding = inputObligation.amount - inputObligation.paid
-        "The amount settled cannot be more than the amount outstanding." using (amountOutstanding >= sumAcceptableCash)
+        val issueSizeOutstanding = inputObligation.issueSize - inputObligation.paid
+        "The issueSize settled cannot be more than the issueSize outstanding." using (issueSizeOutstanding >= sumAcceptableCash)
 
         val obligationOutputs = tx.outputsOfType<Obligation>()
 
         // Check to see if we need an output obligation or not.
-        if (amountOutstanding == sumAcceptableCash) {
+        if (issueSizeOutstanding == sumAcceptableCash) {
             // If the obligation has been fully settled then there should be no obligation output state.
             "There must be no output obligation as it has been fully settled." using (obligationOutputs.isEmpty())
         } else {
@@ -91,7 +91,7 @@ class ObligationContract : Contract {
 
             // Check only the paid property changes.
             val outputObligation = obligationOutputs.single()
-            "The amount may not change when settling." using (inputObligation.amount == outputObligation.amount)
+            "The issueSize may not change when settling." using (inputObligation.issueSize == outputObligation.issueSize)
             "The leadBanker may not change when settling." using (inputObligation.leadBanker == outputObligation.leadBanker)
             "The coBanker may not change when settling." using (inputObligation.coBanker == outputObligation.coBanker)
             "The linearId may not change when settling." using (inputObligation.linearId == outputObligation.linearId)

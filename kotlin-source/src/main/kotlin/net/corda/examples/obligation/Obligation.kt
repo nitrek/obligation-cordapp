@@ -21,11 +21,11 @@ data class Obligation(val issueSize: Amount<Currency>,
 
     fun pay(amountToPay: Amount<Currency>) = copy(paid = paid + amountToPay)
     fun withNewLeadBanker(newLender: AbstractParty) = copy(leadBanker = newLender)
-    fun withoutLeadBanker()) = copy(leadBanker = NullKeys.NULL_PARTY)
+    fun withoutLeadBanker() = copy(leadBanker = NullKeys.NULL_PARTY)
 
     override fun toString(): String {
         val leadBankerString = (leadBanker as? Party)?.name?.organisation ?: leadBanker.owningKey.toBase58String()
         val coBankerString = (coBanker as? Party)?.name?.organisation ?: coBanker.owningKey.toBase58String()
-        return "Issue($linearId): with cobanker : $coBankerString and leadBanker $leadBankerString for $amount and paid $paid."
+        return "Issue($linearId): with cobanker : $coBankerString and leadBanker $leadBankerString for $issueSize and paid $paid."
     }
 }
