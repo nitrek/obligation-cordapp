@@ -42,8 +42,8 @@ class ObligationContract : Contract {
         "Only one obligation state should be created when issuing an obligation." using (tx.outputStates.size == 1)
         val obligation = tx.outputsOfType<Obligation>().single()
         "A newly issued obligation must have a positive amount." using (obligation.amount.quantity > 0)
-        "The lender and borrower cannot be the same identity." using (obligation.coBanker != obligation.leadBanker)
-        "Both lender and borrower together only may sign obligation issue transaction." using
+        "The coBanker and leadBanker cannot be the same identity." using (obligation.coBanker != obligation.leadBanker)
+        "Both coBanker and leadBanker together only may sign obligation issue transaction." using
                 (signers == keysFromParticipants(obligation))
     }
 
@@ -53,9 +53,9 @@ class ObligationContract : Contract {
         "An obligation transfer transaction should only create one output state." using (tx.outputs.size == 1)
         val input = tx.inputsOfType<Obligation>().single()
         val output = tx.outputsOfType<Obligation>().single()
-        "Only the lender property may change." using (input.withoutLender() == output.withoutLender())
-        "The lender property must change in a transfer." using (input.lender != output.lender)
-        "The borrower, old lender and new lender only must sign an obligation transfer transaction" using
+        "Only the coBanker property may change." using (input.withoutcoBanker() == output.withoutcoBanker())
+        "The coBanker property must change in a transfer." using (input.coBanker != output.coBanker)
+        "The leadBanker, old coBanker and new coBanker only must sign an obligation transfer transaction" using
                 (signers == (keysFromParticipants(input) `union` keysFromParticipants(output)))
     }
 
@@ -71,7 +71,7 @@ class ObligationContract : Contract {
 
         // Check that the cash is being assigned to us.
         val inputObligation = obligationInputs.single()
-        val acceptableCash = cash.filter { it.owner == inputObligation.lender }
+        val acceptableCash = cash.filter { it.owner == inputObligation.coBanker }
         "There must be output cash paid to the recipient." using (acceptableCash.isNotEmpty())
 
         // Sum the cash being sent to us (we don't care about the issuer).
@@ -92,8 +92,8 @@ class ObligationContract : Contract {
             // Check only the paid property changes.
             val outputObligation = obligationOutputs.single()
             "The amount may not change when settling." using (inputObligation.amount == outputObligation.amount)
-            "The borrower may not change when settling." using (inputObligation.borrower == outputObligation.borrower)
-            "The lender may not change when settling." using (inputObligation.lender == outputObligation.lender)
+            "The leadBanker may not change when settling." using (inputObligation.leadBanker == outputObligation.leadBanker)
+            "The coBanker may not change when settling." using (inputObligation.coBanker == outputObligation.coBanker)
             "The linearId may not change when settling." using (inputObligation.linearId == outputObligation.linearId)
 
             // Check the paid property is updated correctly.
@@ -101,7 +101,7 @@ class ObligationContract : Contract {
         }
 
         // Checks the required parties have signed.
-        "Both lender and borrower together only must sign obligation settle transaction." using
+        "Both coBanker and leadBanker together only must sign obligation settle transaction." using
                 (signers == keysFromParticipants(inputObligation))
     }
 }

@@ -126,14 +126,14 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
     fun transferObligation(@QueryParam(value = "id") id: String,
                            @QueryParam(value = "party") party: String): Response {
         val linearId = UniqueIdentifier.fromString(id)
-        val newLender = rpcOps.partiesFromName(party, exactMatch = false).singleOrNull()
+        val newleadBanker = rpcOps.partiesFromName(party, exactMatch = false).singleOrNull()
                 ?: throw IllegalStateException("Couldn't lookup node identity for $party.")
 
         val (status, message) = try {
             val flowHandle = rpcOps.startFlowDynamic(
                     TransferObligation.Initiator::class.java,
                     linearId,
-                    newLender,
+                    newleadBanker,
                     true
             )
 

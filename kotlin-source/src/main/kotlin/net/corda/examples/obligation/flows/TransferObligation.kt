@@ -21,7 +21,7 @@ object TransferObligation {
     @StartableByRPC
     @InitiatingFlow
     class Initiator(private val linearId: UniqueIdentifier,
-                    private val newLender: Party,
+                    private val newLeadBanker: Party,
                     private val anonymous: Boolean = true) : ObligationBaseFlow() {
 
         override val progressTracker: ProgressTracker = tracker()
@@ -51,17 +51,17 @@ object TransferObligation {
             val inputObligation = obligationToTransfer.state.data
 
             // Stage 2. This flow can only be initiated by the current recipient.
-            val lenderIdentity = getLenderIdentity(inputObligation)
+            val coBankerIdentity = getcoBankerIdentity(inputObligation)
 
-            // Stage 3. Abort if the borrower started this flow.
-            check(ourIdentity == lenderIdentity) { "Obligation transfer can only be initiated by the lender." }
+            // Stage 3. Abort if the leadBanker started this flow.
+            check(ourIdentity == coBankerIdentity) { "Obligation transfer can only be initiated by the coBanker." }
 
-            // Stage 4. Create the new obligation state reflecting a new lender.
+            // Stage 4. Create the new obligation state reflecting a new coBanker.
             progressTracker.currentStep = BUILDING
             val transferredObligation = createOutputObligation(inputObligation)
 
             // Stage 4. Create the transfer command.
-            val signers = inputObligation.participants + transferredObligation.lender
+            val signers = inputObligation.participants + transferredObligation.coBanker
             val signerKeys = signers.map { it.owningKey }
             val transferCommand = Command(ObligationContract.Commands.Transfer(), signerKeys)
 
@@ -74,23 +74,23 @@ object TransferObligation {
             // Stage 6. Verify and sign the transaction.
             progressTracker.currentStep = SIGNING
             builder.verify(serviceHub)
-            val ptx = serviceHub.signInitialTransaction(builder, inputObligation.lender.owningKey)
+            val ptx = serviceHub.signInitialTransaction(builder, inputObligation.coBanker.owningKey)
 
-            // Stage 7. Get a Party object for the borrower.
+            // Stage 7. Get a Party object for the leadBanker.
             progressTracker.currentStep = SYNCING
-            val borrower = getBorrowerIdentity(inputObligation)
+            val leadBanker = getleadBankerIdentity(inputObligation)
 
             // Stage 8. Send any keys and certificates so the signers can verify each other's identity.
-            // We call `toSet` in case the borrower and the new lender are the same party.
-            val sessions = listOf(borrower, newLender).toSet().map { party: Party -> initiateFlow(party) }.toSet()
+            // We call `toSet` in case the leadBanker and the new coBanker are the same party.
+            val sessions = listOf(leadBanker, newcoBanker).toSet().map { party: Party -> initiateFlow(party) }.toSet()
             subFlow(IdentitySyncFlow.Send(sessions, ptx.tx, SYNCING.childProgressTracker()))
 
-            // Stage 9. Collect signatures from the borrower and the new lender.
+            // Stage 9. Collect signatures from the leadBanker and the new coBanker.
             progressTracker.currentStep = COLLECTING
             val stx = subFlow(CollectSignaturesFlow(
                     partiallySignedTx = ptx,
                     sessionsToCollectFrom = sessions,
-                    myOptionalKeys = listOf(inputObligation.lender.owningKey),
+                    myOptionalKeys = listOf(inputObligation.coBanker.owningKey),
                     progressTracker = COLLECTING.childProgressTracker())
             )
 
@@ -100,11 +100,11 @@ object TransferObligation {
         }
 
         @Suspendable
-        private fun getLenderIdentity(inputObligation: Obligation): AbstractParty {
-            return if (inputObligation.lender is AnonymousParty) {
-                resolveIdentity(inputObligation.lender)
+        private fun getcoBankerIdentity(inputObligation: Obligation): AbstractParty {
+            return if (inputObligation.coBanker is AnonymousParty) {
+                resolveIdentity(inputObligation.coBanker)
             } else {
-                inputObligation.lender
+                inputObligation.coBanker
             }
         }
 
@@ -112,20 +112,20 @@ object TransferObligation {
         private fun createOutputObligation(inputObligation: Obligation): Obligation {
             return if (anonymous) {
                 // TODO: Is there a flow to get a key and cert only from the counterparty?
-                val txKeys = subFlow(SwapIdentitiesFlow(newLender))
-                val anonymousLender = txKeys[newLender] ?: throw FlowException("Couldn't get lender's conf. identity.")
-                inputObligation.withNewLender(anonymousLender)
+                val txKeys = subFlow(SwapIdentitiesFlow(newcoBanker))
+                val anonymouscoBanker = txKeys[newcoBanker] ?: throw FlowException("Couldn't get coBanker's conf. identity.")
+                inputObligation.withNewcoBanker(anonymouscoBanker)
             } else {
-                inputObligation.withNewLender(newLender)
+                inputObligation.withNewcoBanker(newcoBanker)
             }
         }
 
         @Suspendable
-        private fun getBorrowerIdentity(inputObligation: Obligation): Party {
-            return if (inputObligation.borrower is AnonymousParty) {
-                resolveIdentity(inputObligation.borrower)
+        private fun getleadBankerIdentity(inputObligation: Obligation): Party {
+            return if (inputObligation.leadBanker is AnonymousParty) {
+                resolveIdentity(inputObligation.leadBanker)
             } else {
-                inputObligation.borrower as Party
+                inputObligation.leadBanker as Party
             }
         }
     }

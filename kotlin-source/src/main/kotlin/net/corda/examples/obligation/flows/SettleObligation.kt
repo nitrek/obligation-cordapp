@@ -45,23 +45,23 @@ object SettleObligation {
             val obligationToSettle = getObligationByLinearId(linearId)
             val inputObligation = obligationToSettle.state.data
 
-            // Stage 2. Resolve the lender and borrower identity if the obligation is anonymous.
-            val borrowerIdentity = resolveIdentity(inputObligation.borrower)
-            val lenderIdentity = resolveIdentity(inputObligation.lender)
+            // Stage 2. Resolve the leadBanker and coBanker identity if the obligation is anonymous.
+            val coBankerIdentity = resolveIdentity(inputObligation.coBanker)
+            val leadBankerIdentity = resolveIdentity(inputObligation.leadBanker)
 
             // Stage 3. This flow can only be initiated by the current recipient.
-            check(borrowerIdentity == ourIdentity) {
-                throw FlowException("Settle Obligation flow must be initiated by the borrower.")
+            check(leadBankerIdentity == ourIdentity) {
+                throw FlowException("Settle Obligation flow must be initiated by the coBanker.")
             }
 
             // Stage 4. Check we have enough cash to settle the requested amount.
             val cashBalance = serviceHub.getCashBalance(amount.token)
-            val amountLeftToSettle = inputObligation.amount - inputObligation.paid
+            val amountLeftToSettle = inputObligation.issueSize - inputObligation.paid
             check(cashBalance.quantity > 0L) {
-                throw FlowException("Borrower has no ${amount.token} to settle.")
+                throw FlowException("leadBanker has no ${amount.token} to settle.")
             }
             check(cashBalance >= amount) {
-                throw FlowException("Borrower has only $cashBalance but needs $amount to settle.")
+                throw FlowException("leadBanker has only $cashBalance but needs $amount to settle.")
             }
             check(amountLeftToSettle >= amount) {
                 throw FlowException("There's only $amountLeftToSettle left to settle but you pledged $amount.")
@@ -79,9 +79,9 @@ object SettleObligation {
                     .addCommand(settleCommand)
 
             // Stage 7. Get some cash from the vault and add a spend to our transaction builder.
-            // We pay cash to the lenders obligation key.
-            val lenderPaymentKey = inputObligation.lender
-            val (_, cashSigningKeys) = Cash.generateSpend(serviceHub, builder, amount, lenderPaymentKey)
+            // We pay cash to the leadBankers obligation key.
+            val leadBankerPaymentKey = inputObligation.leadBanker
+            val (_, cashSigningKeys) = Cash.generateSpend(serviceHub, builder, amount, leadBankerPaymentKey)
 
             // Stage 8. Only add an output obligation state if the obligation has not been fully settled.
             val amountRemaining = amountLeftToSettle - amount
@@ -93,16 +93,16 @@ object SettleObligation {
             // Stage 9. Verify and sign the transaction.
             progressTracker.currentStep = SIGNING
             builder.verify(serviceHub)
-            val ptx = serviceHub.signInitialTransaction(builder, cashSigningKeys + inputObligation.borrower.owningKey)
+            val ptx = serviceHub.signInitialTransaction(builder, cashSigningKeys + inputObligation.leadBanker.owningKey)
 
             // Stage 10. Get counterparty signature.
             progressTracker.currentStep = COLLECTING
-            val session = initiateFlow(lenderIdentity)
+            val session = initiateFlow(coBankerIdentity)
             subFlow(IdentitySyncFlow.Send(session, ptx.tx))
             val stx = subFlow(CollectSignaturesFlow(
                     ptx,
                     setOf(session),
-                    cashSigningKeys + inputObligation.borrower.owningKey,
+                    cashSigningKeys + inputObligation.leadBankerBanker.owningKey,
                     COLLECTING.childProgressTracker())
             )
 
