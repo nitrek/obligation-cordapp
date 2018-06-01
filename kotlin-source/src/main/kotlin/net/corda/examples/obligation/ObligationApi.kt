@@ -92,7 +92,7 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
                         @QueryParam(value = "currency") currency: String,
                         @QueryParam(value = "coBanker") coBanker: String,
                         @QueryParam(value = "issueName") issueName: String,
-                        @QueryParam(value = "isin") isin: String,): Response {
+                        @QueryParam(value = "isin") isin: String): Response {
         // 1. Get party objects for the counterparty.
         val coBankerIdentity = rpcOps.partiesFromName(coBanker, exactMatch = false).singleOrNull()
                 ?: throw IllegalStateException("Couldn't lookup node identity for $coBanker.")

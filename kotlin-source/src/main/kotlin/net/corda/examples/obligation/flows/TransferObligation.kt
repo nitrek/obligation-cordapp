@@ -82,7 +82,7 @@ object TransferObligation {
 
             // Stage 8. Send any keys and certificates so the signers can verify each other's identity.
             // We call `toSet` in case the leadBanker and the new coBanker are the same party.
-            val sessions = listOf(leadBanker, newcoBanker).toSet().map { party: Party -> initiateFlow(party) }.toSet()
+            val sessions = listOf(leadBanker, newLeadBanker).toSet().map { party: Party -> initiateFlow(party) }.toSet()
             subFlow(IdentitySyncFlow.Send(sessions, ptx.tx, SYNCING.childProgressTracker()))
 
             // Stage 9. Collect signatures from the leadBanker and the new coBanker.
@@ -113,7 +113,7 @@ object TransferObligation {
             return if (anonymous) {
                 // TODO: Is there a flow to get a key and cert only from the counterparty?
                 val txKeys = subFlow(SwapIdentitiesFlow(newLeadBanker))
-                val anonymouscoBanker = txKeys[newcoBanker] ?: throw FlowException("Couldn't get coBanker's conf. identity.")
+                val anonymouscoBanker = txKeys[newLeadBanker] ?: throw FlowException("Couldn't get coBanker's conf. identity.")
                 inputObligation.withNewLeadBanker(anonymouscoBanker)
             } else {
                 inputObligation.withNewLeadBanker(newLeadBanker)

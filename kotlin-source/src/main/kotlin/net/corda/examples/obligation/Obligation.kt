@@ -14,7 +14,7 @@ data class Obligation(val issueSize: Amount<Currency>,
                       val coBanker: AbstractParty,
                       val issueName:String,
                       val isin:String,
-                      val paid: Amount<Currency> = Amount(0, amount.token),
+                      val paid: Amount<Currency> = Amount(0, issueSize.token),
                       override val linearId: UniqueIdentifier = UniqueIdentifier()) : LinearState {
 
     override val participants: List<AbstractParty> get() = listOf(leadBanker,coBanker)

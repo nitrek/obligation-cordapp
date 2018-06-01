@@ -53,7 +53,7 @@ class ObligationContract : Contract {
         "An obligation transfer transaction should only create one output state." using (tx.outputs.size == 1)
         val input = tx.inputsOfType<Obligation>().single()
         val output = tx.outputsOfType<Obligation>().single()
-        "Only the coBanker property may change." using (input.withoutcoBanker() == output.withoutcoBanker())
+        "Only the coBanker property may change." using (input.withoutLeadBanker() == output.withoutLeadBanker())
         "The coBanker property must change in a transfer." using (input.coBanker != output.coBanker)
         "The leadBanker, old coBanker and new coBanker only must sign an obligation transfer transaction" using
                 (signers == (keysFromParticipants(input) `union` keysFromParticipants(output)))
