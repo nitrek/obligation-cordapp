@@ -88,12 +88,14 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
 
     @GET
     @Path("issue-obligation")
-    fun issueObligation(@QueryParam(value = "amount") amount: Int,
+    fun issueObligation(@QueryParam(value = "issueSize") amount: Int,
                         @QueryParam(value = "currency") currency: String,
-                        @QueryParam(value = "party") party: String): Response {
+                        @QueryParam(value = "coBanker") coBanker: String,
+                        @QueryParam(value = "issueName") issueName: String,
+                        @QueryParam(value = "isin") isin: String,): Response {
         // 1. Get party objects for the counterparty.
-        val lenderIdentity = rpcOps.partiesFromName(party, exactMatch = false).singleOrNull()
-                ?: throw IllegalStateException("Couldn't lookup node identity for $party.")
+        val coBankerIdentity = rpcOps.partiesFromName(coBanker, exactMatch = false).singleOrNull()
+                ?: throw IllegalStateException("Couldn't lookup node identity for $coBanker.")
 
         // 2. Create an amount object.
         val issueAmount = Amount(amount.toLong() * 100, Currency.getInstance(currency))
@@ -103,7 +105,9 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
             val flowHandle = rpcOps.startFlowDynamic(
                     IssueObligation.Initiator::class.java,
                     issueAmount,
-                    lenderIdentity,
+                    coBankerIdentity,
+                    issueName,
+                    isin,
                     true
             )
 

@@ -42,7 +42,7 @@ class ObligationContract : Contract {
         "Only one obligation state should be created when issuing an obligation." using (tx.outputStates.size == 1)
         val obligation = tx.outputsOfType<Obligation>().single()
         "A newly issued obligation must have a positive amount." using (obligation.amount.quantity > 0)
-        "The lender and borrower cannot be the same identity." using (obligation.borrower != obligation.lender)
+        "The lender and borrower cannot be the same identity." using (obligation.coBanker != obligation.leadBanker)
         "Both lender and borrower together only may sign obligation issue transaction." using
                 (signers == keysFromParticipants(obligation))
     }

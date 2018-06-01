@@ -19,7 +19,9 @@ object IssueObligation {
     @InitiatingFlow
     @StartableByRPC
     class Initiator(private val amount: Amount<Currency>,
-                    private val lender: Party,
+                    private val coBanker: Party,
+                    private val issueName: String,
+                    private val isin: String,
                     private val anonymous: Boolean = true) : ObligationBaseFlow() {
 
         companion object {
@@ -42,8 +44,8 @@ object IssueObligation {
         override fun call(): SignedTransaction {
             // Step 1. Initialisation.
             progressTracker.currentStep = INITIALISING
-            val obligation = if (anonymous) createAnonymousObligation() else Obligation(amount, lender, ourIdentity)
-            val ourSigningKey = obligation.borrower.owningKey
+            val obligation = if (anonymous) createAnonymousObligation() else Obligation(amount,ourIdentity,coBanker,issueName,isin)
+            val ourSigningKey = obligation.leadBanker.owningKey
 
             // Step 2. Building.
             progressTracker.currentStep = BUILDING
