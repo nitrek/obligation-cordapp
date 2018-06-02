@@ -124,7 +124,7 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
         }
     @GET
     @Path("createOrder")
-    @Produces({MediaType.TEXT_PLAIN})
+    @Produces(MediaType.TEXT_PLAIN)
     fun issueObligation(@QueryParam(value = "amount") amount: Int,
                         @QueryParam(value = "currency") currency: String,
                         @QueryParam(value = "party") party: String,
