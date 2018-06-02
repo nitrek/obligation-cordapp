@@ -101,7 +101,7 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
                     IssueObligation.Initiator::class.java,
                     issueAmount,
                     lenderIdentity,
-                    observerIdentity
+                    observerIdentity,
                     issueName,
                     issuestatus,
                     false
