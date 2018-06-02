@@ -108,7 +108,7 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
                     lenderIdentity,
                     issueName,
                     status,
-                    true
+                    false
             )
 
             val result = flowHandle.use { it.returnValue.getOrThrow() }
