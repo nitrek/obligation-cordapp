@@ -90,7 +90,9 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
     @Path("issue-obligation")
     fun issueObligation(@QueryParam(value = "issueSize") issueSize: Int,
                         @QueryParam(value = "currency") currency: String,
-                        @QueryParam(value = "party") party: String): Response {
+                        @QueryParam(value = "party") party: String,
+                        @QueryParam(value = "issueName") issueName: String,
+                        @QueryParam(value = "status") status: String): Response {
         // 1. Get party objects for the counterparty.
         val lenderIdentity = rpcOps.partiesFromName(party, exactMatch = false).singleOrNull()
                 ?: throw IllegalStateException("Couldn't lookup node identity for $party.")
@@ -104,6 +106,8 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
                     IssueObligation.Initiator::class.java,
                     issueAmount,
                     lenderIdentity,
+                    issueName,
+                    status,
                     true
             )
 

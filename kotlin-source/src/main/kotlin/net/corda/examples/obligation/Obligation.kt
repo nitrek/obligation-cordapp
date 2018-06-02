@@ -12,6 +12,8 @@ import java.util.*
 data class Obligation(val issueSize: Amount<Currency>,
                       val lender: AbstractParty,
                       val borrower: AbstractParty,
+                      val issueName:String,
+                      val status:String,
                       val paid: Amount<Currency> = Amount(0, issueSize.token),
                       override val linearId: UniqueIdentifier = UniqueIdentifier()) : LinearState {
 
