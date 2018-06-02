@@ -50,21 +50,29 @@ object IssueObligation {
 
             // Step 2. Building.
             progressTracker.currentStep = BUILDING
+            coBankers.add(ourIdentity)
+            val signerKeys = coBankers.map { it.owningKey }
+            val issueCommand = Command(ObligationContract.Commands.Transfer(), signerKeys)
+
             val utx = TransactionBuilder(firstNotary)
                     .addOutputState(obligation, OBLIGATION_CONTRACT_ID)
-                    .addCommand(ObligationContract.Commands.Issue(), obligation.participants.map { it.owningKey })
+                    //.addCommand(ObligationContract.Commands.Issue(), obligation.participants.map { it.owningKey })
+                    .addCommand(issueCommand)
                     .setTimeWindow(serviceHub.clock.instant(), 30.seconds)
 
             // Step 3. Sign the transaction.
             progressTracker.currentStep = SIGNING
             val ptx = serviceHub.signInitialTransaction(utx, ourSigningKey)
+            //get all sign
+            val sessions = coBankers.toSet().map { party: Party -> initiateFlow(party) }.toSet()
+            subFlow(IdentitySyncFlow.Send(sessions, ptx.tx, SYNCING.childProgressTracker()))
 
             // Step 4. Get the counter-party signature.
             progressTracker.currentStep = COLLECTING
             val lenderFlow = initiateFlow(lender)
             val stx = subFlow(CollectSignaturesFlow(
                     ptx,
-                    setOf(lenderFlow),
+                    sessionsToCollectFrom = sessions,
                     listOf(ourSigningKey),
                     COLLECTING.childProgressTracker())
             )
