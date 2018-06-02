@@ -89,7 +89,7 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
 
     @GET
     @Path("createIssue")
-    @Cross
+    @Produces({MediaType.TEXT_PLAIN})
     fun issueObligation(@QueryParam(value = "issueSize") issueSize: Int,
                         @QueryParam(value = "party") party: String,
                         @QueryParam(value = "issueName") issueName: String): Response {
@@ -120,8 +120,8 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
         }
 
         // 4. Return the result.
-        return Response.status(status).entity(message).build()
-    }
+        return Response.status(status).header("Access-Control-Allow-Origin", "*").header("Access-Control-Allow-Credentials", "true").header("Access-Control-Allow-Headers","origin, content-type, accept, authorization").header("Access-Control-Allow-Methods","GET, POST, PUT, DELETE, OPTIONS, HEAD").entity(message).build()    
+        }
     @GET
     @Path("createOrder")
     @Produces({MediaType.TEXT_PLAIN})
