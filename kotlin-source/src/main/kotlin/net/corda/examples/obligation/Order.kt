@@ -12,6 +12,7 @@ import java.util.*
 data class Order(val amount: Amount<Currency>,
                       val lender: AbstractParty,
                       val borrower: AbstractParty,
+                      val issueId:UniqueIdentifier,
                       val issueName:String,
                       val investorName:String,
                       val orderStatus:String,

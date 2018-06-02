@@ -6,6 +6,7 @@ import net.corda.core.messaging.CordaRPCOps
 import net.corda.core.utilities.OpaqueBytes
 import net.corda.core.utilities.getOrThrow
 import net.corda.examples.obligation.flows.IssueObligation
+import net.corda.examples.obligation.flows.OrderFlow
 import net.corda.examples.obligation.flows.SettleObligation
 import net.corda.examples.obligation.flows.TransferObligation
 import net.corda.finance.contracts.asset.Cash
@@ -120,42 +121,46 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
         // 4. Return the result.
         return Response.status(status).entity(message).build()
     }
-    // @GET
-    // @Path("createOrder")
-    // fun issueObligation(@QueryParam(value = "amount") amount: Int,
-    //                     @QueryParam(value = "currency") currency: String,
-    //                     @QueryParam(value = "party") party: String,
-    //                     @QueryParam(value = "issueName") issueName: String,
-    //                     @QueryParam(value = "status") status: String,
-    //                     @QueryParam(value = "book") book: String,
-    //                     @QueryParam(value = "country") country: String): Response {
-    //     // 1. Get party objects for the counterparty.
-    //     val lenderIdentity = rpcOps.partiesFromName(party, exactMatch = false).singleOrNull()
-    //             ?: throw IllegalStateException("Couldn't lookup node identity for $party.")
+    @GET
+    @Path("createOrder")
+    fun issueObligation(@QueryParam(value = "amount") amount: Int,
+                        @QueryParam(value = "currency") currency: String,
+                        @QueryParam(value = "party") party: String,
+                        @QueryParam(value = "issueId") issueId: String,
+                        @QueryParam(value = "issueName") issueName: String,
+                        @QueryParam(value = "status") status: String,
+                        @QueryParam(value = "investorName") investorName: String,
+                        @QueryParam(value = "book") book: String,
+                        @QueryParam(value = "country") country: String): Response {
+        // 1. Get party objects for the counterparty.
+         val lenderIdentity = rpcOps.partiesFromName(party, exactMatch = false).singleOrNull()
+             ?: throw IllegalStateException("Couldn't lookup node identity for $party.")
 
-    //     // 2. Create an amount object.
-    //     val issueAmount = Amount(amount.toLong() * 100, Currency.getInstance(currency))
+        // 2. Create an amount object.
+        val issueAmount = Amount(amount.toLong() * 100, Currency.getInstance(currency))
+        val linearId = UniqueIdentifier.fromString(issueId)
+        // 3. Start the IssueObligation flow. We block and wait for the flow to return.
+        val (status, message) = try {
+            val flowHandle = rpcOps.startFlowDynamic(
+                    OrderFlow.Initiator::class.java,
+                    issueAmount,
+                    linearId,
+                    issueName,
+                    status,
+                    book,
+                    country,
+                    investorName,
+                    lenderIdentity
+            )
+            val result = flowHandle.use { it.returnValue.getOrThrow() }
+            CREATED to "Transaction id ${result.id} committed to ledger.\n${result.tx.outputs.single().data}"
+        } catch (e: Exception) {
+            BAD_REQUEST to e.message
+        }
 
-    //     // 3. Start the IssueObligation flow. We block and wait for the flow to return.
-    //     val (status, message) = try {
-    //         val flowHandle = rpcOps.startFlowDynamic(
-    //                 IssueObligation.Initiator::class.java,
-    //                 issueAmount,
-    //                 lenderIdentity,
-    //                 issueName,
-    //                 status,
-    //                 false
-    //         )
-
-    //         val result = flowHandle.use { it.returnValue.getOrThrow() }
-    //         CREATED to "Transaction id ${result.id} committed to ledger.\n${result.tx.outputs.single().data}"
-    //     } catch (e: Exception) {
-    //         BAD_REQUEST to e.message
-    //     }
-
-    //     // 4. Return the result.
-    //     return Response.status(status).entity(message).build()
-    // }
+        // 4. Return the result.
+        return Response.status(status).entity(message).build()
+    }
     @GET
     @Path("transfer-obligation")
     fun transferObligation(@QueryParam(value = "id") id: String,
