@@ -89,7 +89,7 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
 
     @GET
     @Path("createIssue")
-    @Produces({MediaType.TEXT_PLAIN})
+    @Produces(MediaType.APPLICATION_JSON)
     fun issueObligation(@QueryParam(value = "issueSize") issueSize: Int,
                         @QueryParam(value = "party") party: String,
                         @QueryParam(value = "issueName") issueName: String): Response {
