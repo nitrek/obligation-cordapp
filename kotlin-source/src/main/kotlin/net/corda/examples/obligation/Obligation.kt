@@ -12,6 +12,7 @@ import java.util.*
 data class Obligation(val issueSize: Amount<Currency>,
                       val lender: AbstractParty,
                       val borrower: AbstractParty,
+                      val observer: AbstractParty,
                       val issueName:String,
                       val status:String,
                       val paid: Amount<Currency> = Amount(0, issueSize.token),
@@ -26,6 +27,7 @@ data class Obligation(val issueSize: Amount<Currency>,
     override fun toString(): String {
         val lenderString = (lender as? Party)?.name?.organisation ?: lender.owningKey.toBase58String()
         val borrowerString = (borrower as? Party)?.name?.organisation ?: borrower.owningKey.toBase58String()
-        return "Obligation($linearId): $borrowerString owes $lenderString $issueSize and has paid $paid so far."
+        val observerString = (observer as? Party)?.name?.organisation ?: observer.owningKey.toBase58String()
+        return "Obligation($linearId): $borrowerString owes $lenderString $issueSize and has paid $paid so far with observer as $observer."
     }
 }
