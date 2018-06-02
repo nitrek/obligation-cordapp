@@ -24,6 +24,7 @@ class ObligationContract : Contract {
         val setOfSigners = command.signers.toSet()
         when (command.value) {
             is Commands.Issue -> verifyIssue(tx, setOfSigners)
+             is Commands.Order -> verifyOrder(tx, setOfSigners)
             is Commands.Transfer -> verifyTransfer(tx, setOfSigners)
             is Commands.Settle -> verifySettle(tx, setOfSigners)
             else -> throw IllegalArgumentException("Unrecognised command.")
@@ -46,7 +47,10 @@ class ObligationContract : Contract {
         "Both lender and borrower together only may sign obligation issue transaction." using
                 (signers == keysFromParticipants(obligation))
     }
-
+ // This only allows one obligation issuance per transaction.
+    private fun verifyOrder(tx: LedgerTransaction, signers: Set<PublicKey>) = requireThat {
+      
+    }
     // This only allows one obligation transfer per transaction.
     private fun verifyTransfer(tx: LedgerTransaction, signers: Set<PublicKey>) = requireThat {
         "An obligation transfer transaction should only consume one input state." using (tx.inputs.size == 1)

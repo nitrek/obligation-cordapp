@@ -124,7 +124,7 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
         }
     @GET
     @Path("createOrder")
-    @Produces(MediaType.TEXT_PLAIN)
+    @Produces(MediaType.APPLICATION_JSON)
     fun issueObligation(@QueryParam(value = "amount") amount: Int,
                         @QueryParam(value = "currency") currency: String,
                         @QueryParam(value = "party") party: String,
@@ -140,13 +140,13 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
 
         // 2. Create an amount object.
         val issueAmount = Amount(amount.toLong() * 100, Currency.getInstance(currency))
-        val linearId = UniqueIdentifier.fromString(issueId)
+        //val linearId = UniqueIdentifier.fromString(issueId)
         // 3. Start the IssueObligation flow. We block and wait for the flow to return.
         val (status, message) = try {
             val flowHandle = rpcOps.startFlowDynamic(
                     OrderFlow.Initiator::class.java,
                     issueAmount,
-                    linearId,
+                    issueId,
                     issueName,
                     status,
                     book,

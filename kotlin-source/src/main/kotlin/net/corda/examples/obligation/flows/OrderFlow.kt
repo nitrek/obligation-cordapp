@@ -20,7 +20,7 @@ object OrderFlow {
     @InitiatingFlow
     @StartableByRPC
     class Initiator(private val amount: Amount<Currency>,
-                    private val issueId:UniqueIdentifier,
+                    private val issueId:String,
                     private val issueName:String,
                     private val status:String,
                     private val book:String,
@@ -54,7 +54,7 @@ object OrderFlow {
             progressTracker.currentStep = BUILDING
             val utx = TransactionBuilder(firstNotary)
                     .addOutputState(order, OBLIGATION_CONTRACT_ID)
-                    .addCommand(ObligationContract.Commands.Issue(), order.participants.map { it.owningKey })
+                    .addCommand(ObligationContract.Commands.Order(), order.participants.map { it.owningKey })
                     .setTimeWindow(serviceHub.clock.instant(), 30.seconds)
 
             // Step 3. Sign the transaction.

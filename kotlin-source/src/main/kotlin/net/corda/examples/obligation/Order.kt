@@ -12,7 +12,7 @@ import java.util.*
 data class Order(val amount: Amount<Currency>,
                       val lender: AbstractParty,
                       val borrower: AbstractParty,
-                      val issueId:UniqueIdentifier,
+                      val issueId:String,
                       val issueName:String,
                       val investorName:String,
                       val orderStatus:String,
@@ -24,8 +24,8 @@ data class Order(val amount: Amount<Currency>,
     override val participants: List<AbstractParty> get() = listOf(lender, borrower)
 
     fun pay(amountToPay: Amount<Currency>) = copy(allocatedAmount = allocatedAmount + amountToPay)
-    fun withNewLender(newLender: AbstractParty) = copy(lender = newLender)
-    fun withoutLender() = copy(lender = NullKeys.NULL_PARTY)
+    fun withNewLender(newLender: AbstractParty) = copy(borrower = newLender)
+    fun withoutLender() = copy(borrower = NullKeys.NULL_PARTY)
 
     override fun toString(): String {
         val lenderString = (lender as? Party)?.name?.organisation ?: lender.owningKey.toBase58String()
