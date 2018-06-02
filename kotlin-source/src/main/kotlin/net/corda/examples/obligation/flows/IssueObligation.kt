@@ -19,7 +19,7 @@ object IssueObligation {
     @InitiatingFlow
     @StartableByRPC
     class Initiator(private val amount: Amount<Currency>,
-                    private val lender: Party,
+                    private val lenders: ArrayList<Party>,
                     private val issueName:String,
                     private val status:String,
                     private val anonymous: Boolean = true) : ObligationBaseFlow() {
@@ -44,7 +44,7 @@ object IssueObligation {
         override fun call(): SignedTransaction {
             // Step 1. Initialisation.
             progressTracker.currentStep = INITIALISING
-            val obligation = if (anonymous) createAnonymousObligation() else Obligation(amount, lender, ourIdentity,issueName,status)
+            val obligation = Obligation(amount, lenders, ourIdentity,issueName,status)//if (anonymous) createAnonymousObligation() else 
             val ourSigningKey = obligation.borrower.owningKey
 
             // Step 2. Building.
@@ -60,10 +60,12 @@ object IssueObligation {
 
             // Step 4. Get the counter-party signature.
             progressTracker.currentStep = COLLECTING
-            val lenderFlow = initiateFlow(lender)
+            //val lenderFlow = initiateFlow(lenders)
+            val sessions = obligation.lenders.map { lender : Party -> initiateFlow(lender)}.toSet()
+
             val stx = subFlow(CollectSignaturesFlow(
                     ptx,
-                    setOf(lenderFlow),
+                    sessions,//setOf(lenderFlow),
                     listOf(ourSigningKey),
                     COLLECTING.childProgressTracker())
             )
@@ -73,17 +75,17 @@ object IssueObligation {
             return subFlow(FinalityFlow(stx, FINALISING.childProgressTracker()))
         }
 
-        @Suspendable
-        private fun createAnonymousObligation(): Obligation {
-            val txKeys = subFlow(SwapIdentitiesFlow(lender))
+        // @Suspendable
+        // private fun createAnonymousObligation(): Obligation {
+        //     val txKeys = subFlow(SwapIdentitiesFlow(lenders))
 
-            check(txKeys.size == 2) { "Something went wrong when generating confidential identities." }
+        //     check(txKeys.size == 2) { "Something went wrong when generating confidential identities." }
 
-            val anonymousMe = txKeys[ourIdentity] ?: throw FlowException("Couldn't create our conf. identity.")
-            val anonymousLender = txKeys[lender] ?: throw FlowException("Couldn't create lender's conf. identity.")
+        //     val anonymousMe = txKeys[ourIdentity] ?: throw FlowException("Couldn't create our conf. identity.")
+        //     val anonymousLender = txKeys[lenders] ?: throw FlowException("Couldn't create lender's conf. identity.")
 
-            return Obligation(amount, anonymousLender, anonymousMe,"anon","invalid")
-        }
+        //     return Obligation(amount, anonymousLender, anonymousMe,"anon","invalid")
+        // }
     }
 
     @InitiatedBy(Initiator::class)

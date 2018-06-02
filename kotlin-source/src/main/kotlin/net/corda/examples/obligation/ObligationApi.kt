@@ -6,11 +6,10 @@ import net.corda.core.messaging.CordaRPCOps
 import net.corda.core.utilities.OpaqueBytes
 import net.corda.core.utilities.getOrThrow
 import net.corda.examples.obligation.flows.IssueObligation
-import net.corda.examples.obligation.flows.SettleObligation
-import net.corda.examples.obligation.flows.TransferObligation
 import net.corda.finance.contracts.asset.Cash
 import net.corda.finance.contracts.getCashBalances
 import net.corda.finance.flows.CashIssueFlow
+import net.corda.core.identity.Party
 import java.util.*
 import javax.ws.rs.GET
 import javax.ws.rs.Path
@@ -42,7 +41,7 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
     @Path("owed-per-currency")
     @Produces(MediaType.APPLICATION_JSON)
     fun owedPerCurrency() = rpcOps.vaultQuery(Obligation::class.java).states
-            .filter { (state) -> state.data.lender != myIdentity }
+            .filter { (state) -> !state.data.lenders.contains(myIdentity)}
             .map { (state) -> state.data.issueSize }
             .groupBy({ issueSize -> issueSize.token }, { (quantity) -> quantity })
             .mapValues { it.value.sum() }
@@ -61,8 +60,7 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
     @Path("cash-balances")
     @Produces(MediaType.APPLICATION_JSON)
     fun getCashBalances() = rpcOps.getCashBalances()
-
-    @GET
+/*    @GET
     @Path("self-issue-cash")
     fun selfIssueCash(@QueryParam(value = "issueSize") issueSize: Int,
                       @QueryParam(value = "currency") currency: String): Response {
@@ -84,28 +82,34 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
 
         // 3. Return the response.
         return Response.status(status).entity(message).build()
-    }
+    } */
+
 
     @GET
     @Path("issue-obligation")
     fun issueObligation(@QueryParam(value = "issueSize") issueSize: Int,
                         @QueryParam(value = "currency") currency: String,
-                        @QueryParam(value = "party") party: String,
+                        @QueryParam(value = "coBanker1") coBanker1: String,
+                        @QueryParam(value = "coBanker2") coBanker2: String,
                         @QueryParam(value = "issueName") issueName: String,
                         @QueryParam(value = "status") status: String): Response {
         // 1. Get party objects for the counterparty.
-        val lenderIdentity = rpcOps.partiesFromName(party, exactMatch = false).singleOrNull()
-                ?: throw IllegalStateException("Couldn't lookup node identity for $party.")
-
+        val lenderIdentity = rpcOps.partiesFromName(coBanker1, exactMatch = false).singleOrNull()
+                ?: throw IllegalStateException("Couldn't lookup node identity for $coBanker1.")
+        
+        val lenderIdentity2 = rpcOps.partiesFromName(coBanker2, exactMatch = false).singleOrNull()
+                ?: throw IllegalStateException("Couldn't lookup node identity for $coBanker2.")
         // 2. Create an amount object.
         val issueAmount = Amount(issueSize.toLong() * 100, Currency.getInstance(currency))
-
+        val partyList = ArrayList<Party>();
+        partyList.add(lenderIdentity)
+        partyList.add(lenderIdentity2)
         // 3. Start the IssueObligation flow. We block and wait for the flow to return.
         val (status, message) = try {
             val flowHandle = rpcOps.startFlowDynamic(
                     IssueObligation.Initiator::class.java,
                     issueAmount,
-                    lenderIdentity,
+                    partyList,
                     issueName,
                     status,
                     false
@@ -120,7 +124,7 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
         // 4. Return the result.
         return Response.status(status).entity(message).build()
     }
-
+/*
     @GET
     @Path("transfer-obligation")
     fun transferObligation(@QueryParam(value = "id") id: String,
@@ -169,5 +173,5 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
         }
 
         return Response.status(status).entity(message).build()
-    }
+    } */
 }

@@ -42,7 +42,7 @@ class ObligationContract : Contract {
         "Only one obligation state should be created when issuing an obligation." using (tx.outputStates.size == 1)
         val obligation = tx.outputsOfType<Obligation>().single()
         "A newly issued obligation must have a positive amount." using (obligation.issueSize.quantity > 0)
-        "The lender and borrower cannot be the same identity." using (obligation.borrower != obligation.lender)
+        "The lender and borrower cannot be the same identity." using (obligation.lenders.contains(obligation.borrower))
         "Both lender and borrower together only may sign obligation issue transaction." using
                 (signers == keysFromParticipants(obligation))
     }
@@ -54,7 +54,7 @@ class ObligationContract : Contract {
         val input = tx.inputsOfType<Obligation>().single()
         val output = tx.outputsOfType<Obligation>().single()
         "Only the lender property may change." using (input.withoutLender() == output.withoutLender())
-        "The lender property must change in a transfer." using (input.lender != output.lender)
+        //"The lender property must change in a transfer." using (input.lender != output.lender)
         "The borrower, old lender and new lender only must sign an obligation transfer transaction" using
                 (signers == (keysFromParticipants(input) `union` keysFromParticipants(output)))
     }
@@ -71,7 +71,7 @@ class ObligationContract : Contract {
 
         // Check that the cash is being assigned to us.
         val inputObligation = obligationInputs.single()
-        val acceptableCash = cash.filter { it.owner == inputObligation.lender }
+        val acceptableCash = cash.filter { it.owner in inputObligation.lenders }
         "There must be output cash paid to the recipient." using (acceptableCash.isNotEmpty())
 
         // Sum the cash being sent to us (we don't care about the issuer).
@@ -93,7 +93,7 @@ class ObligationContract : Contract {
             val outputObligation = obligationOutputs.single()
             "The amount may not change when settling." using (inputObligation.issueSize == outputObligation.issueSize)
             "The borrower may not change when settling." using (inputObligation.borrower == outputObligation.borrower)
-            "The lender may not change when settling." using (inputObligation.lender == outputObligation.lender)
+            //"The lender may not change when settling." using (inputObligation.lender outputObligation.lender)
             "The linearId may not change when settling." using (inputObligation.linearId == outputObligation.linearId)
 
             // Check the paid property is updated correctly.
