@@ -47,7 +47,7 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
     @GET
     @Path("orders")
     @Produces(MediaType.APPLICATION_JSON)
-    fun cash() = rpcOps.vaultQuery(Order.State::class.java).states
+    fun cash() = rpcOps.vaultQuery(Order::class.java).states
 
     @GET
     @Path("cash-balances")
