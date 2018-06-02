@@ -87,6 +87,8 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
         // 1. Get party objects for the counterparty.
         val lenderIdentity = rpcOps.partiesFromName(party, exactMatch = false).singleOrNull()
                 ?: throw IllegalStateException("Couldn't lookup node identity for $party.")
+        val observerIdentity = rpcOps.partiesFromName("Observer", exactMatch = false).singleOrNull()
+                ?: throw IllegalStateException("Couldn't lookup node identity for $party.")
 
         // 2. Create an amount object.
         val issuestatus = "DRAFT"
@@ -99,6 +101,7 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
                     IssueObligation.Initiator::class.java,
                     issueAmount,
                     lenderIdentity,
+                    observerIdentity
                     issueName,
                     issuestatus,
                     false

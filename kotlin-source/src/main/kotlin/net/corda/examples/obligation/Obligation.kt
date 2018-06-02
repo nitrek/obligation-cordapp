@@ -12,12 +12,13 @@ import java.util.*
 data class Obligation(val issueSize: Amount<Currency>,
                       val lender: AbstractParty,
                       val borrower: AbstractParty,
+                      val observer: Party,
                       val issueName:String,
                       val status:String,
                       val paid: Amount<Currency> = Amount(0, issueSize.token),
                       override val linearId: UniqueIdentifier = UniqueIdentifier()) : LinearState {
 
-    override val participants: List<AbstractParty> get() = listOf(lender, borrower)
+    override val participants: List<AbstractParty> get() = listOf(lender, borrower,observer)
 
     fun pay(amountToPay: Amount<Currency>) = copy(paid = paid + amountToPay)
     fun withNewLender(newLender: AbstractParty) = copy(lender = newLender)

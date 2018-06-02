@@ -20,6 +20,7 @@ object IssueObligation {
     @StartableByRPC
     class Initiator(private val amount: Amount<Currency>,
                     private val lender: Party,
+                    private val observer: Party,
                     private val issueName:String,
                     private val status:String,
                     private val anonymous: Boolean = true) : ObligationBaseFlow() {
@@ -44,7 +45,7 @@ object IssueObligation {
         override fun call(): SignedTransaction {
             // Step 1. Initialisation.
             progressTracker.currentStep = INITIALISING
-            val obligation = if (anonymous) createAnonymousObligation() else Obligation(amount, lender, ourIdentity,issueName,status)
+            val obligation = if (anonymous) createAnonymousObligation() else Obligation(amount, lender, ourIdentity,observer,issueName,status)
             val ourSigningKey = obligation.borrower.owningKey
 
             // Step 2. Building.
@@ -80,9 +81,10 @@ object IssueObligation {
             check(txKeys.size == 2) { "Something went wrong when generating confidential identities." }
 
             val anonymousMe = txKeys[ourIdentity] ?: throw FlowException("Couldn't create our conf. identity.")
+            val anonymousObserver = txKeys[observer] ?: throw FlowException("Couldn't create our conf. identity.")
             val anonymousLender = txKeys[lender] ?: throw FlowException("Couldn't create lender's conf. identity.")
 
-            return Obligation(amount, anonymousLender, anonymousMe,"anon","invalid")
+            return Obligation(amount, anonymousLender, anonymousMe,anonymousObserver,"anon","invalid")
         }
     }
 
