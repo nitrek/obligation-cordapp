@@ -9,14 +9,16 @@ fun main(args: Array<String>) {
     val user = User("user1", "test", permissions = setOf())
 
     driver(isDebug = true, startNodesInProcess = true, waitForAllNodesToFinish = true) {
-        val (nodeA, nodeB, nodeC) = listOf(
+        val (nodeA, nodeB, nodeC,nodeD) = listOf(
                 startNode(providedName = CordaX500Name("PartyA", "London", "GB"), rpcUsers = listOf(user)),
                 startNode(providedName = CordaX500Name("PartyB", "New York", "US"), rpcUsers = listOf(user)),
                 startNode(providedName = CordaX500Name("PartyC", "Paris", "FR"), rpcUsers = listOf(user))
+                startNode(providedName = CordaX500Name("Observer", "Paris", "FR"), rpcUsers = listOf(user))
         ).map { it.getOrThrow() }
 
         startWebserver(nodeA)
         startWebserver(nodeB)
         startWebserver(nodeC)
+        startWebserver(nodeD)
     }
 }
