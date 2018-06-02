@@ -118,7 +118,7 @@ object TransferObligation {
             } else {
                 val newCoBankers = inputObligation.coBankers
                 newCoBankers.add(newLender)
-                inputObligation.withNewCoBankers(withNewCoBankers)
+                inputObligation.withNewCoBankers(newCoBankers)
             }
         }
 
