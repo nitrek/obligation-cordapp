@@ -117,18 +117,17 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
     @Path("createOrder")
     @Produces(MediaType.APPLICATION_JSON)
     fun issueObligation(@QueryParam(value = "amount") amount: Int,
-                        @QueryParam(value = "currency") currency: String,
                         @QueryParam(value = "party") party: String,
                         @QueryParam(value = "issueId") issueId: String,
                         @QueryParam(value = "issueName") issueName: String,
-                        @QueryParam(value = "status") status: String,
                         @QueryParam(value = "investorName") investorName: String,
                         @QueryParam(value = "book") book: String,
                         @QueryParam(value = "country") country: String): Response {
         // 1. Get party objects for the counterparty.
          val lenderIdentity = rpcOps.partiesFromName(party, exactMatch = false).singleOrNull()
              ?: throw IllegalStateException("Couldn't lookup node identity for $party.")
-
+        val status1 = "Shared"
+        val currency = "USD"
         // 2. Create an amount object.
         val issueAmount = Amount(amount.toLong() * 100, Currency.getInstance(currency))
         //val linearId = UniqueIdentifier.fromString(issueId)
@@ -139,7 +138,7 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
                     issueAmount,
                     issueId,
                     issueName,
-                    status,
+                    status1,
                     book,
                     country,
                     investorName,
