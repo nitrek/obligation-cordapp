@@ -20,7 +20,6 @@ object OrderFlow {
     @InitiatingFlow
     @StartableByRPC
     class Initiator(private val amount: Amount<Currency>,
-                     private val issueAmount:Int,
                     private val issueId:UniqueIdentifier,
                     private val issueName:String,
                     private val status:String,
@@ -44,16 +43,6 @@ object OrderFlow {
         }
 
         override val progressTracker: ProgressTracker = tracker()
-/*val amount: Amount<Currency>,
-                      val lender: AbstractParty,
-                      val borrower: AbstractParty,
-                      val issueId:String,
-                      val issueName:String,
-                      val investorName:String,
-                      val orderStatus:String,
-                      val book:String,
-                      val country:String,
-                      val allocatedAmount:, */
         @Suspendable
         override fun call(): SignedTransaction {
             // Step 1. Initialisation.
