@@ -2,6 +2,7 @@ package net.corda.examples.obligation.flows
 
 import co.paralleluniverse.fibers.Suspendable
 import net.corda.confidential.SwapIdentitiesFlow
+import net.corda.confidential.IdentitySyncFlow
 import net.corda.core.contracts.Amount
 import net.corda.core.flows.*
 import net.corda.core.identity.Party
@@ -32,6 +33,9 @@ object IssueObligation {
             object COLLECTING : Step("Collecting counterparty signature.") {
                 override fun childProgressTracker() = CollectSignaturesFlow.tracker()
             }
+            object SYNCING : ProgressTracker.Step("Syncing identities.") {
+                override fun childProgressTracker() = IdentitySyncFlow.Send.tracker()
+            }
             object FINALISING : Step("Finalising transaction.") {
                 override fun childProgressTracker() = FinalityFlow.tracker()
             }
@@ -58,13 +62,14 @@ object IssueObligation {
             // Step 3. Sign the transaction.
             progressTracker.currentStep = SIGNING
             val ptx = serviceHub.signInitialTransaction(utx, ourSigningKey)
-
+            val sessions = listOf(lender, observer).toSet().map { party: Party -> initiateFlow(party) }.toSet()
+            subFlow(IdentitySyncFlow.Send(sessions, ptx.tx, SYNCING.childProgressTracker()))
             // Step 4. Get the counter-party signature.
             progressTracker.currentStep = COLLECTING
-            val lenderFlow = initiateFlow(lender)
+            //val lenderFlow = initiateFlow(lender)
             val stx = subFlow(CollectSignaturesFlow(
                     ptx,
-                    setOf(lenderFlow),
+                    sessions,
                     listOf(ourSigningKey),
                     COLLECTING.childProgressTracker())
             )
