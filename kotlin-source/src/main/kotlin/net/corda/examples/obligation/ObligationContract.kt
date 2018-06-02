@@ -15,6 +15,7 @@ class ObligationContract : Contract {
 
     interface Commands : CommandData {
         class Issue : TypeOnlyCommandData(), Commands
+        class Order : TypeOnlyCommandData(), Commands
         class Transfer : TypeOnlyCommandData(), Commands
         class Settle : TypeOnlyCommandData(), Commands
     }
