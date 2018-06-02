@@ -120,42 +120,42 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
         // 4. Return the result.
         return Response.status(status).entity(message).build()
     }
-    @GET
-    @Path("createOrder")
-    fun issueObligation(@QueryParam(value = "amount") amount: Int,
-                        @QueryParam(value = "currency") currency: String,
-                        @QueryParam(value = "party") party: String,
-                        @QueryParam(value = "issueName") issueName: String,
-                        @QueryParam(value = "status") status: String,
-                        @QueryParam(value = "book") book: String,
-                        @QueryParam(value = "country") country: String): Response {
-        // 1. Get party objects for the counterparty.
-        val lenderIdentity = rpcOps.partiesFromName(party, exactMatch = false).singleOrNull()
-                ?: throw IllegalStateException("Couldn't lookup node identity for $party.")
+    // @GET
+    // @Path("createOrder")
+    // fun issueObligation(@QueryParam(value = "amount") amount: Int,
+    //                     @QueryParam(value = "currency") currency: String,
+    //                     @QueryParam(value = "party") party: String,
+    //                     @QueryParam(value = "issueName") issueName: String,
+    //                     @QueryParam(value = "status") status: String,
+    //                     @QueryParam(value = "book") book: String,
+    //                     @QueryParam(value = "country") country: String): Response {
+    //     // 1. Get party objects for the counterparty.
+    //     val lenderIdentity = rpcOps.partiesFromName(party, exactMatch = false).singleOrNull()
+    //             ?: throw IllegalStateException("Couldn't lookup node identity for $party.")
 
-        // 2. Create an amount object.
-        val issueAmount = Amount(issueSize.toLong() * 100, Currency.getInstance(currency))
+    //     // 2. Create an amount object.
+    //     val issueAmount = Amount(amount.toLong() * 100, Currency.getInstance(currency))
 
-        // 3. Start the IssueObligation flow. We block and wait for the flow to return.
-        val (status, message) = try {
-            val flowHandle = rpcOps.startFlowDynamic(
-                    IssueObligation.Initiator::class.java,
-                    issueAmount,
-                    lenderIdentity,
-                    issueName,
-                    status,
-                    false
-            )
+    //     // 3. Start the IssueObligation flow. We block and wait for the flow to return.
+    //     val (status, message) = try {
+    //         val flowHandle = rpcOps.startFlowDynamic(
+    //                 IssueObligation.Initiator::class.java,
+    //                 issueAmount,
+    //                 lenderIdentity,
+    //                 issueName,
+    //                 status,
+    //                 false
+    //         )
 
-            val result = flowHandle.use { it.returnValue.getOrThrow() }
-            CREATED to "Transaction id ${result.id} committed to ledger.\n${result.tx.outputs.single().data}"
-        } catch (e: Exception) {
-            BAD_REQUEST to e.message
-        }
+    //         val result = flowHandle.use { it.returnValue.getOrThrow() }
+    //         CREATED to "Transaction id ${result.id} committed to ledger.\n${result.tx.outputs.single().data}"
+    //     } catch (e: Exception) {
+    //         BAD_REQUEST to e.message
+    //     }
 
-        // 4. Return the result.
-        return Response.status(status).entity(message).build()
-    }
+    //     // 4. Return the result.
+    //     return Response.status(status).entity(message).build()
+    // }
     @GET
     @Path("transfer-obligation")
     fun transferObligation(@QueryParam(value = "id") id: String,

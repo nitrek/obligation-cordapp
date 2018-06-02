@@ -17,7 +17,7 @@ data class Order(val amount: Amount<Currency>,
                       val orderStatus:String,
                       val book:String,
                       val country:String,
-                      val allocatedAmount: Amount<Currency> = Amount(0, issueSize.token),
+                      val allocatedAmount: Amount<Currency> = Amount(0, amount.token),
                       override val linearId: UniqueIdentifier = UniqueIdentifier()) : LinearState {
 
     override val participants: List<AbstractParty> get() = listOf(lender, borrower)
@@ -29,6 +29,6 @@ data class Order(val amount: Amount<Currency>,
     override fun toString(): String {
         val lenderString = (lender as? Party)?.name?.organisation ?: lender.owningKey.toBase58String()
         val borrowerString = (borrower as? Party)?.name?.organisation ?: borrower.owningKey.toBase58String()
-        return "Obligation($linearId): $borrowerString owes $lenderString $issueSize and has paid $paid so far."
+        return "Obligation($linearId): $borrowerString owes $lenderString $amount and has paid $allocatedAmount so far."
     }
 }
