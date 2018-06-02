@@ -97,9 +97,10 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
                 ?: throw IllegalStateException("Couldn't lookup node identity for $party.")
 
         // 2. Create an amount object.
-        val issueAmount = Amount(issueSize.toLong() * 100, Currency.getInstance(currency))
-        val status = "DRAFT"
+        val issuestatus = "DRAFT"
         val currency = "USD"
+        val issueAmount = Amount(issueSize.toLong() * 100, Currency.getInstance(currency))
+        
         // 3. Start the IssueObligation flow. We block and wait for the flow to return.
         val (status, message) = try {
             val flowHandle = rpcOps.startFlowDynamic(
@@ -107,7 +108,7 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
                     issueAmount,
                     lenderIdentity,
                     issueName,
-                    status,
+                    issuestatus,
                     false
             )
 
