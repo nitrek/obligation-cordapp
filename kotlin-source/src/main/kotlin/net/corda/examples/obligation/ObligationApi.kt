@@ -102,7 +102,7 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
             val flowHandle = rpcOps.startFlowDynamic(
                     IssueObligation.Initiator::class.java,
                     issueAmount,
-                    observerIdentity,
+                    lenderIdentity,
                     issueName,
                     issuestatus,
                     coBankers,

@@ -1,7 +1,6 @@
 package net.corda.examples.obligation.flows
 
 import co.paralleluniverse.fibers.Suspendable
-import net.corda.confidential.IdentitySyncFlow
 import net.corda.confidential.SwapIdentitiesFlow
 import net.corda.core.contracts.Amount
 import net.corda.core.flows.*
@@ -9,7 +8,6 @@ import net.corda.core.identity.Party
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
 import net.corda.core.utilities.ProgressTracker
-import net.corda.core.contracts.Command
 import net.corda.core.utilities.ProgressTracker.Step
 import net.corda.core.utilities.seconds
 import net.corda.examples.obligation.Obligation
@@ -31,9 +29,6 @@ object IssueObligation {
             object INITIALISING : Step("Performing initial steps.")
             object BUILDING : Step("Building and verifying transaction.")
             object SIGNING : Step("Signing transaction.")
-            object SYNCING : ProgressTracker.Step("Syncing identities.") {
-                override fun childProgressTracker() = IdentitySyncFlow.Send.tracker()
-            }
             object COLLECTING : Step("Collecting counterparty signature.") {
                 override fun childProgressTracker() = CollectSignaturesFlow.tracker()
             }
@@ -50,36 +45,28 @@ object IssueObligation {
         override fun call(): SignedTransaction {
             // Step 1. Initialisation.
             progressTracker.currentStep = INITIALISING
-            val obligation =Obligation(amount, lender, ourIdentity,coBankers,issueName,status)// if (anonymous) createAnonymousObligation() else 
+            val obligation = Obligation(amount, lender,ourIdentity,coBankers,issueName,status)
             val ourSigningKey = obligation.borrower.owningKey
 
             // Step 2. Building.
             progressTracker.currentStep = BUILDING
-            coBankers.add(ourIdentity)
-            val signerKeys = coBankers.map { it.owningKey }
-            val issueCommand = Command(ObligationContract.Commands.Transfer(), signerKeys)
-
             val utx = TransactionBuilder(firstNotary)
                     .addOutputState(obligation, OBLIGATION_CONTRACT_ID)
-                    //.addCommand(ObligationContract.Commands.Issue(), obligation.participants.map { it.owningKey })
-                    .addCommand(issueCommand)
+                    .addCommand(ObligationContract.Commands.Issue(), obligation.participants.map { it.owningKey })
                     .setTimeWindow(serviceHub.clock.instant(), 30.seconds)
 
             // Step 3. Sign the transaction.
             progressTracker.currentStep = SIGNING
             val ptx = serviceHub.signInitialTransaction(utx, ourSigningKey)
-            //get all sign
-            val sessions = coBankers.toSet().map { party: Party -> initiateFlow(party) }.toSet()
-            subFlow(IdentitySyncFlow.Send(sessions, ptx.tx, SYNCING.childProgressTracker()))
 
             // Step 4. Get the counter-party signature.
             progressTracker.currentStep = COLLECTING
             val lenderFlow = initiateFlow(lender)
             val stx = subFlow(CollectSignaturesFlow(
-                   partiallySignedTx = ptx,
-                    sessionsToCollectFrom = sessions,
-                    myOptionalKeys = listOf(ourSigningKey),
-                    progressTracker = COLLECTING.childProgressTracker())
+                    ptx,
+                    setOf(lenderFlow),
+                    listOf(ourSigningKey),
+                    COLLECTING.childProgressTracker())
             )
 
             // Step 5. Finalise the transaction.

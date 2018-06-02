@@ -116,7 +116,9 @@ object TransferObligation {
                 val anonymousLender = txKeys[newLender] ?: throw FlowException("Couldn't get lender's conf. identity.")
                 inputObligation.withNewLender(anonymousLender)
             } else {
-                inputObligation.withNewLender(newLender)
+                val newCoBankers = inputObligation.coBankers
+                newCoBankers.add(newLender)
+                inputObligation.withNewCoBankers(withNewCoBankers)
             }
         }
 

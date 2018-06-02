@@ -30,15 +30,17 @@ data class Obligation(val issueSize: Amount<Currency>,
     fun pay(amountToPay: Amount<Currency>) = copy(paid = paid + amountToPay)
     fun withNewLender(newLender: AbstractParty) = copy(lender = newLender)
     fun withoutLender() = copy(lender = NullKeys.NULL_PARTY)
-
+    fun withNewCoBankers(newcoBankers: ArrayList<Party>) = copy(coBankers = newcoBankers)
+    
     override fun toString(): String {
         val lenderString = (lender as? Party)?.name?.organisation ?: lender.owningKey.toBase58String()
         val borrowerString = (borrower as? Party)?.name?.organisation ?: borrower.owningKey.toBase58String()
         return "Obligation($linearId): $borrowerString owes $lenderString $issueSize and has paid $paid so far."
     }
-    
+    // fun copyparticipant (copyparticipant:ArrayList<Party>) = copy (coBankers=copyparticipant)
+
     // fun updateparticipant (newparticipant:Party):ArrayList<Party> {
-    //     bankDepartmentlist.add(newparticipant)
-    //     return bankDepartmentlist;
+    //     coBankers.add(newparticipant)
+    //     return coBankers;
     // }
 }
