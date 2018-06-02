@@ -10,6 +10,7 @@ import net.corda.examples.obligation.flows.OrderFlow
 import net.corda.examples.obligation.flows.SettleObligation
 import net.corda.examples.obligation.flows.TransferObligation
 import net.corda.finance.contracts.asset.Cash
+import net.corda.core.identity.Party
 import net.corda.finance.contracts.getCashBalances
 import net.corda.finance.flows.CashIssueFlow
 import java.util.*
@@ -89,7 +90,7 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
                 ?: throw IllegalStateException("Couldn't lookup node identity for $party.")
         val observerIdentity = rpcOps.partiesFromName("Observer", exactMatch = false).singleOrNull()
                 ?: throw IllegalStateException("Couldn't lookup node identity for $party.")
-        val coBankers = ArrayList<Party>
+        val coBankers = ArrayList<Party>()
         coBankers.add(legalIdentities)
         // 2. Create an amount object.
         val issuestatus = "DRAFT"
@@ -104,7 +105,7 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
                     observerIdentity,
                     issueName,
                     issuestatus,
-                    coBankers
+                    coBankers,
                     false
             )
 

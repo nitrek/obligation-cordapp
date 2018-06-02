@@ -45,7 +45,7 @@ object IssueObligation {
         override fun call(): SignedTransaction {
             // Step 1. Initialisation.
             progressTracker.currentStep = INITIALISING
-            val obligation = if (anonymous) createAnonymousObligation() else Obligation(amount, lender, ourIdentity,coBankers,issueName,status)
+            val obligation =Obligation(amount, lender, ourIdentity,coBankers,issueName,status)// if (anonymous) createAnonymousObligation() else 
             val ourSigningKey = obligation.borrower.owningKey
 
             // Step 2. Building.
@@ -74,17 +74,17 @@ object IssueObligation {
             return subFlow(FinalityFlow(stx, FINALISING.childProgressTracker()))
         }
 
-        @Suspendable
-        private fun createAnonymousObligation(): Obligation {
-            val txKeys = subFlow(SwapIdentitiesFlow(lender))
+        // @Suspendable
+        // private fun createAnonymousObligation(): Obligation {
+        //     val txKeys = subFlow(SwapIdentitiesFlow(lender))
 
-            check(txKeys.size == 2) { "Something went wrong when generating confidential identities." }
+        //     check(txKeys.size == 2) { "Something went wrong when generating confidential identities." }
 
-            val anonymousMe = txKeys[ourIdentity] ?: throw FlowException("Couldn't create our conf. identity.")
-            val anonymousLender = txKeys[lender] ?: throw FlowException("Couldn't create lender's conf. identity.")
+        //     val anonymousMe = txKeys[ourIdentity] ?: throw FlowException("Couldn't create our conf. identity.")
+        //     val anonymousLender = txKeys[lender] ?: throw FlowException("Couldn't create lender's conf. identity.")
 
-            return Obligation(amount, anonymousLender, anonymousMe,"anon","invalid")
-        }
+        //     return Obligation(amount, anonymousLender, anonymousMe,"anon","invalid")
+        // }
     }
 
     @InitiatedBy(Initiator::class)
