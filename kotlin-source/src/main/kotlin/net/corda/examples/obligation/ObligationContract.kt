@@ -41,7 +41,7 @@ class ObligationContract : Contract {
         "No inputs should be consumed when issuing an obligation." using (tx.inputStates.isEmpty())
         "Only one obligation state should be created when issuing an obligation." using (tx.outputStates.size == 1)
         val obligation = tx.outputsOfType<Obligation>().single()
-        "A newly issued obligation must have a positive amount." using (obligation.amount.quantity > 0)
+        "A newly issued obligation must have a positive amount." using (obligation.issueSize.quantity > 0)
         "The lender and borrower cannot be the same identity." using (obligation.borrower != obligation.lender)
         "Both lender and borrower together only may sign obligation issue transaction." using
                 (signers == keysFromParticipants(obligation))
@@ -76,7 +76,7 @@ class ObligationContract : Contract {
 
         // Sum the cash being sent to us (we don't care about the issuer).
         val sumAcceptableCash = acceptableCash.sumCash().withoutIssuer()
-        val amountOutstanding = inputObligation.amount - inputObligation.paid
+        val amountOutstanding = inputObligation.issueSize - inputObligation.paid
         "The amount settled cannot be more than the amount outstanding." using (amountOutstanding >= sumAcceptableCash)
 
         val obligationOutputs = tx.outputsOfType<Obligation>()
@@ -91,7 +91,7 @@ class ObligationContract : Contract {
 
             // Check only the paid property changes.
             val outputObligation = obligationOutputs.single()
-            "The amount may not change when settling." using (inputObligation.amount == outputObligation.amount)
+            "The amount may not change when settling." using (inputObligation.issueSize == outputObligation.issueSize)
             "The borrower may not change when settling." using (inputObligation.borrower == outputObligation.borrower)
             "The lender may not change when settling." using (inputObligation.lender == outputObligation.lender)
             "The linearId may not change when settling." using (inputObligation.linearId == outputObligation.linearId)

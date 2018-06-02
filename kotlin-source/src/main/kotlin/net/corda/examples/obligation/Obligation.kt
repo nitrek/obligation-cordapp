@@ -9,10 +9,10 @@ import net.corda.core.identity.Party
 import net.corda.core.utilities.toBase58String
 import java.util.*
 
-data class Obligation(val amount: Amount<Currency>,
+data class Obligation(val issueSize: Amount<Currency>,
                       val lender: AbstractParty,
                       val borrower: AbstractParty,
-                      val paid: Amount<Currency> = Amount(0, amount.token),
+                      val paid: Amount<Currency> = Amount(0, issueSize.token),
                       override val linearId: UniqueIdentifier = UniqueIdentifier()) : LinearState {
 
     override val participants: List<AbstractParty> get() = listOf(lender, borrower)
@@ -24,6 +24,6 @@ data class Obligation(val amount: Amount<Currency>,
     override fun toString(): String {
         val lenderString = (lender as? Party)?.name?.organisation ?: lender.owningKey.toBase58String()
         val borrowerString = (borrower as? Party)?.name?.organisation ?: borrower.owningKey.toBase58String()
-        return "Obligation($linearId): $borrowerString owes $lenderString $amount and has paid $paid so far."
+        return "Obligation($linearId): $borrowerString owes $lenderString $issueSize and has paid $paid so far."
     }
 }

@@ -19,7 +19,7 @@ object SettleObligation {
     @InitiatingFlow
     @StartableByRPC
     class Initiator(private val linearId: UniqueIdentifier,
-                    private val amount: Amount<Currency>,
+                    private val issueSize: Amount<Currency>,
                     private val anonymous: Boolean = true) : ObligationBaseFlow() {
 
         override val progressTracker: ProgressTracker = tracker()
@@ -55,16 +55,16 @@ object SettleObligation {
             }
 
             // Stage 4. Check we have enough cash to settle the requested amount.
-            val cashBalance = serviceHub.getCashBalance(amount.token)
-            val amountLeftToSettle = inputObligation.amount - inputObligation.paid
+            val cashBalance = serviceHub.getCashBalance(issueSize.token)
+            val amountLeftToSettle = inputObligation.issueSize - inputObligation.paid
             check(cashBalance.quantity > 0L) {
-                throw FlowException("Borrower has no ${amount.token} to settle.")
+                throw FlowException("Borrower has no ${issueSize.token} to settle.")
             }
-            check(cashBalance >= amount) {
-                throw FlowException("Borrower has only $cashBalance but needs $amount to settle.")
+            check(cashBalance >= issueSize) {
+                throw FlowException("Borrower has only $cashBalance but needs $issueSize to settle.")
             }
-            check(amountLeftToSettle >= amount) {
-                throw FlowException("There's only $amountLeftToSettle left to settle but you pledged $amount.")
+            check(amountLeftToSettle >= issueSize) {
+                throw FlowException("There's only $amountLeftToSettle left to settle but you pledged $issueSize.")
             }
 
             // Stage 5. Create a settle command.
@@ -81,12 +81,12 @@ object SettleObligation {
             // Stage 7. Get some cash from the vault and add a spend to our transaction builder.
             // We pay cash to the lenders obligation key.
             val lenderPaymentKey = inputObligation.lender
-            val (_, cashSigningKeys) = Cash.generateSpend(serviceHub, builder, amount, lenderPaymentKey)
+            val (_, cashSigningKeys) = Cash.generateSpend(serviceHub, builder, issueSize, lenderPaymentKey)
 
             // Stage 8. Only add an output obligation state if the obligation has not been fully settled.
-            val amountRemaining = amountLeftToSettle - amount
-            if (amountRemaining > Amount.zero(amount.token)) {
-                val outputObligation = inputObligation.pay(amount)
+            val amountRemaining = amountLeftToSettle - issueSize
+            if (amountRemaining > Amount.zero(issueSize.token)) {
+                val outputObligation = inputObligation.pay(issueSize)
                 builder.addOutputState(outputObligation, OBLIGATION_CONTRACT_ID)
             }
 

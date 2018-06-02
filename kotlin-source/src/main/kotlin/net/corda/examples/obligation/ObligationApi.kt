@@ -43,8 +43,8 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
     @Produces(MediaType.APPLICATION_JSON)
     fun owedPerCurrency() = rpcOps.vaultQuery(Obligation::class.java).states
             .filter { (state) -> state.data.lender != myIdentity }
-            .map { (state) -> state.data.amount }
-            .groupBy({ amount -> amount.token }, { (quantity) -> quantity })
+            .map { (state) -> state.data.issueSize }
+            .groupBy({ issueSize -> issueSize.token }, { (quantity) -> quantity })
             .mapValues { it.value.sum() }
 
     @GET
@@ -64,11 +64,11 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
 
     @GET
     @Path("self-issue-cash")
-    fun selfIssueCash(@QueryParam(value = "amount") amount: Int,
+    fun selfIssueCash(@QueryParam(value = "issueSize") issueSize: Int,
                       @QueryParam(value = "currency") currency: String): Response {
 
         // 1. Prepare issue request.
-        val issueAmount = Amount(amount.toLong() * 100, Currency.getInstance(currency))
+        val issueAmount = Amount(issueSize.toLong() * 100, Currency.getInstance(currency))
         val notary = rpcOps.notaryIdentities().firstOrNull() ?: throw IllegalStateException("Could not find a notary.")
         val issueRef = OpaqueBytes.of(0)
         val issueRequest = CashIssueFlow.IssueRequest(issueAmount, issueRef, notary)
@@ -88,7 +88,7 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
 
     @GET
     @Path("issue-obligation")
-    fun issueObligation(@QueryParam(value = "amount") amount: Int,
+    fun issueObligation(@QueryParam(value = "issueSize") issueSize: Int,
                         @QueryParam(value = "currency") currency: String,
                         @QueryParam(value = "party") party: String): Response {
         // 1. Get party objects for the counterparty.
@@ -96,7 +96,7 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
                 ?: throw IllegalStateException("Couldn't lookup node identity for $party.")
 
         // 2. Create an amount object.
-        val issueAmount = Amount(amount.toLong() * 100, Currency.getInstance(currency))
+        val issueAmount = Amount(issueSize.toLong() * 100, Currency.getInstance(currency))
 
         // 3. Start the IssueObligation flow. We block and wait for the flow to return.
         val (status, message) = try {
@@ -145,21 +145,21 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
     @GET
     @Path("settle-obligation")
     fun settleObligation(@QueryParam(value = "id") id: String,
-                         @QueryParam(value = "amount") amount: Int,
+                         @QueryParam(value = "issueSize") issueSize: Int,
                          @QueryParam(value = "currency") currency: String): Response {
         val linearId = UniqueIdentifier.fromString(id)
-        val settleAmount = Amount(amount.toLong() * 100, Currency.getInstance(currency))
+        val settleissueSize = Amount(issueSize.toLong() * 100, Currency.getInstance(currency))
 
         val (status, message) = try {
             val flowHandle = rpcOps.startFlowDynamic(
                     SettleObligation.Initiator::class.java,
                     linearId,
-                    settleAmount,
+                    settleissueSize,
                     true
             )
 
             flowHandle.use { flowHandle.returnValue.getOrThrow() }
-            CREATED to "$amount $currency paid off on obligation id $id."
+            CREATED to "$issueSize $currency paid off on obligation id $id."
         } catch (e: Exception) {
             BAD_REQUEST to e.message
         }
