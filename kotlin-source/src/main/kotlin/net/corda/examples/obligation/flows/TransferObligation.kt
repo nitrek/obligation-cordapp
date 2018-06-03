@@ -107,7 +107,7 @@ object TransferObligation {
 
             // Stage 10. Notarise and record, the transaction in our vaults. Send a copy to me as well.
             progressTracker.currentStep = FINALISING
-            return subFlow(FinalityFlow(stx, coBankers))
+            return subFlow(FinalityFlow(stx, coBankers.toSet()))
         }
 
         @Suspendable
