@@ -111,14 +111,7 @@ object TransferObligation {
 
         @Suspendable
         private fun createOutputObligation(inputObligation: Obligation): Obligation {
-            return if (anonymous) {
-                // TODO: Is there a flow to get a key and cert only from the counterparty?
-                val txKeys = subFlow(SwapIdentitiesFlow(newLender))
-                val anonymousLender = txKeys[newLender] ?: throw FlowException("Couldn't get lender's conf. identity.")
-                inputObligation.withNewLender(anonymousLender)
-            } else {
-                inputObligation.withNewLender(newLender)
-            }
+            return inputObligation.withNewLender(newLender)
         }
         @Suspendable
         private fun createOutputObligation2(inputObligation: Obligation): Obligation {
