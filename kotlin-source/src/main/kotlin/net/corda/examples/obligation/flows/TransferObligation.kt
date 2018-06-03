@@ -62,7 +62,7 @@ object TransferObligation {
             val transferredObligation = createOutputObligation(transferredObligation2)
 
             // Stage 4. Create the transfer command.
-            val signers = inputObligation.participants + transferredObligation.lender
+            val signers = inputObligation.participants + transferredObligation.borrower
             val signerKeys = signers.map { it.owningKey }
             val transferCommand = Command(ObligationContract.Commands.Transfer(), signerKeys)
 
