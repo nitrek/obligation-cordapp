@@ -18,6 +18,7 @@ data class Order(val amount: Amount<Currency>,
                       val orderStatus:String,
                       val book:String,
                       val country:String,
+                      val orderId:String,
                       val allocatedAmount: Amount<Currency> = Amount(0, amount.token),
                       override val linearId: UniqueIdentifier = UniqueIdentifier()) : LinearState {
 

@@ -37,6 +37,8 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
     @Produces(MediaType.APPLICATION_JSON)
     fun peers() = mapOf("peers" to rpcOps.networkMapSnapshot()
             .filter { nodeInfo -> nodeInfo.legalIdentities.first() != myIdentity }
+            .filter { nodeInfo -> nodeInfo.legalIdentities.first().name.organisation != "Observer" }
+            .filter { nodeInfo -> nodeInfo.legalIdentities.first().name.organisation != "NetworkMapAndNotary" }
             .map { it.legalIdentities.first().name.organisation })
 
     @GET
@@ -119,16 +121,14 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
     @GET
     @Path("createOrder")
     @Produces(MediaType.APPLICATION_JSON)
-    fun issueObligation(@QueryParam(value = "amount") amount: Int,
-                        @QueryParam(value = "party") party: String,
+    fun issueOrder(@QueryParam(value = "amount") amount: Int,
                         @QueryParam(value = "issueId") issueId: String,
                         @QueryParam(value = "issueName") issueName: String,
                         @QueryParam(value = "investorName") investorName: String,
                         @QueryParam(value = "book") book: String,
+                        @QueryParam(value = "orderId") orderId: String,
                         @QueryParam(value = "country") country: String): Response {
         // 1. Get party objects for the counterparty.
-         val lenderIdentity = rpcOps.partiesFromName(party, exactMatch = false).singleOrNull()
-             ?: throw IllegalStateException("Couldn't lookup node identity for $party.")
         val status1 = "Shared"
         val currency = "USD"
         // 2. Create an amount object.
@@ -145,7 +145,7 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
                     book,
                     country,
                     investorName,
-                    lenderIdentity
+                    orderId
             )
             val result = flowHandle.use { it.returnValue.getOrThrow() }
             CREATED to "Transaction id ${result.id} committed to ledger.\n${result.tx.outputs.single().data}"
