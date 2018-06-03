@@ -130,8 +130,8 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
                     observerIdentity,
                     issueName,
                     issuestatus,
-                    partyList,
                     lenderList,
+                    partyList,
                     issuer,
                     false
             )
@@ -184,21 +184,48 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
     @GET
     @Path("updateStatus")
     fun transferObligation(@QueryParam(value = "id") id: String,
-                           @QueryParam(value = "party") party: String): Response {
+                           @QueryParam(value = "party") partyList: String): Response {
         val linearId = UniqueIdentifier.fromString(id)
-        val newLender = rpcOps.partiesFromName(party, exactMatch = false).singleOrNull()
-                ?: throw IllegalStateException("Couldn't lookup node identity for $party.")
+
+
+        val lenderList = ArrayList<Party>(5)
+        val transferpartyList = partyList.split(",".toRegex())
+
+        println(transferpartyList)
+
+        for(tParty:String in  transferpartyList )
+        {
+
+            //   val TransferpartyObject = CordaX500Name(tParty,"London","GB");
+            // println(TransferpartyObject)
+            val lenderIdentity = rpcOps.partiesFromName(tParty, exactMatch = false).singleOrNull()
+                    ?: throw IllegalStateException("Couldn't lookup node identity for $tParty.")
+
+            //     val lender = services.wellKnownPartyFromX500Name(TransferpartyObject)  ?: throw IllegalArgumentException("Unknown party name.")
+            lenderList.add(lenderIdentity)
+        }
+
+
+
+
+        val observerIdentity = rpcOps.partiesFromName("Observer", exactMatch = false).singleOrNull()
+                ?: throw IllegalStateException("Couldn't lookup node identity for Observer.")
+
+        lenderList.add(observerIdentity)
+        println(lenderList)
+
+
 
         val (status, message) = try {
             val flowHandle = rpcOps.startFlowDynamic(
                     TransferObligation.Initiator::class.java,
                     linearId,
-                    newLender,
+                    lenderList,
                     true
             )
 
             flowHandle.use { flowHandle.returnValue.getOrThrow() }
-            CREATED to "Obligation $id transferred to $party."
+            CREATED to "Obligation $id transferred to $partyList."
         } catch (e: Exception) {
             BAD_REQUEST to e.message
         }

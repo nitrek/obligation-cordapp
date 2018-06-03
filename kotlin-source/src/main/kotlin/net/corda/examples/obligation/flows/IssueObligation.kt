@@ -73,7 +73,7 @@ object IssueObligation {
 
             // Step 3. Sign the transaction.
             progressTracker.currentStep = SIGNING
-            val ptx = serviceHub.signInitialTransaction(utx, ourSigningKey)
+            val ptx = serviceHub.signInitialTransaction(utx)
 
             // Step 4. Get the counter-party signature.
             progressTracker.currentStep = COLLECTING
