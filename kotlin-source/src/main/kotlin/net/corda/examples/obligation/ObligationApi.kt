@@ -2,6 +2,8 @@ package net.corda.examples.obligation
 
 import net.corda.core.contracts.Amount
 import net.corda.core.contracts.UniqueIdentifier
+import net.corda.core.identity.CordaX500Name
+import net.corda.core.identity.Party
 import net.corda.core.messaging.CordaRPCOps
 import net.corda.core.utilities.OpaqueBytes
 import net.corda.core.utilities.getOrThrow
@@ -85,11 +87,35 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
     @Produces(MediaType.APPLICATION_JSON)
     fun issueObligation(@QueryParam(value = "issuer") issuer: String,
                         @QueryParam(value = "issueSize") issueSize: Int,
-                        @QueryParam(value = "party") party: String,
+                        @QueryParam(value = "party") partyList: String,
                         @QueryParam(value = "issueName") issueName: String): Response {
         // 1. Get party objects for the counterparty.
-        val lenderIdentity = rpcOps.partiesFromName("Observer", exactMatch = false).singleOrNull()
-                ?: throw IllegalStateException("Couldn't lookup node identity for $party.")
+
+        val lenderList = ArrayList<Party>(5)
+        val transferpartyList = partyList.split(",".toRegex())
+
+        println(transferpartyList)
+
+        for(tParty:String in  transferpartyList )
+        {
+
+         //   val TransferpartyObject = CordaX500Name(tParty,"London","GB");
+           // println(TransferpartyObject)
+            val lenderIdentity = rpcOps.partiesFromName(tParty, exactMatch = false).singleOrNull()
+                    ?: throw IllegalStateException("Couldn't lookup node identity for $tParty.")
+
+       //     val lender = services.wellKnownPartyFromX500Name(TransferpartyObject)  ?: throw IllegalArgumentException("Unknown party name.")
+            lenderList.add(lenderIdentity)
+        }
+
+
+
+
+        val observerIdentity = rpcOps.partiesFromName("Observer", exactMatch = false).singleOrNull()
+                ?: throw IllegalStateException("Couldn't lookup node identity for Observer.")
+
+        lenderList.add(observerIdentity)
+        println(lenderList)
 
         // 2. Create an amount object.
         val issuestatus = "DRAFT"
@@ -101,10 +127,11 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
             val flowHandle = rpcOps.startFlowDynamic(
                     IssueObligation.Initiator::class.java,
                     issueAmount,
-                    lenderIdentity,
+                    observerIdentity,
                     issueName,
                     issuestatus,
-                    party,
+                    partyList,
+                    lenderList,
                     issuer,
                     false
             )
