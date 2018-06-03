@@ -105,7 +105,7 @@ object TransferObligation {
             return if (inputObligation.lender is AnonymousParty) {
                 resolveIdentity(inputObligation.lender)
             } else {
-                inputObligation.lender
+                inputObligation.lender as Party
             }
         }
 
