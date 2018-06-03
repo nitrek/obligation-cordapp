@@ -83,7 +83,7 @@ object IssueObligation {
             val anonymousMe = txKeys[ourIdentity] ?: throw FlowException("Couldn't create our conf. identity.")
             val anonymousLender = txKeys[lender] ?: throw FlowException("Couldn't create lender's conf. identity.")
 
-            return Obligation(amount, anonymousLender, anonymousMe,"anon","invalid")
+            return Obligation(amount, anonymousLender, anonymousMe,"Observer","anon","invalid")
         }
     }
 

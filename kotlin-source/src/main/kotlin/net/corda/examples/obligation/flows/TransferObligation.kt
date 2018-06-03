@@ -58,7 +58,8 @@ object TransferObligation {
 
             // Stage 4. Create the new obligation state reflecting a new lender.
             progressTracker.currentStep = BUILDING
-            val transferredObligation = createOutputObligation(inputObligation)
+            val transferredObligation2 = createOutputObligation2(inputObligation)
+            val transferredObligation = createOutputObligation(transferredObligation2)
 
             // Stage 4. Create the transfer command.
             val signers = inputObligation.participants + transferredObligation.lender
@@ -118,6 +119,11 @@ object TransferObligation {
             } else {
                 inputObligation.withNewLender(newLender)
             }
+        }
+        @Suspendable
+        private fun createOutputObligation2(inputObligation: Obligation): Obligation {
+            return inputObligation.updateStatus("Live")
+            
         }
 
         @Suspendable

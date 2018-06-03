@@ -23,6 +23,7 @@ data class Obligation(val issueSize: Amount<Currency>,
     fun pay(amountToPay: Amount<Currency>) = copy(paid = paid + amountToPay)
     fun withNewLender(newLender: AbstractParty) = copy(lender = newLender)
     fun withoutLender() = copy(lender = NullKeys.NULL_PARTY)
+    fun updateStatus(newStatus:String) = copy(status = newStatus)
 
     override fun toString(): String {
         val lenderString = (lender as? Party)?.name?.organisation ?: lender.owningKey.toBase58String()

@@ -101,7 +101,7 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
                     lenderIdentity,
                     issueName,
                     issuestatus,
-                    party
+                    party,
                     false
             )
 
@@ -155,7 +155,7 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
         return Response.status(status).entity(message).build()
     }
     @GET
-    @Path("transfer-obligation")
+    @Path("updateStatus")
     fun transferObligation(@QueryParam(value = "id") id: String,
                            @QueryParam(value = "party") party: String): Response {
         val linearId = UniqueIdentifier.fromString(id)
