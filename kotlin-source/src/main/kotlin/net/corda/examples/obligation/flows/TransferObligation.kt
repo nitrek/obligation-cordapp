@@ -83,7 +83,7 @@ object TransferObligation {
 
             // Stage 8. Send any keys and certificates so the signers can verify each other's identity.
             // We call `toSet` in case the borrower and the new lender are the same party.
-            val sessions = listOf(lender, newLender).toSet().map { party: Party -> initiateFlow(party) }.toSet()
+            val sessions = listOf(lenderIdentity, newLender).toSet().map { party: Party -> initiateFlow(party) }.toSet()
             subFlow(IdentitySyncFlow.Send(sessions, ptx.tx, SYNCING.childProgressTracker()))
 
             // Stage 9. Collect signatures from the borrower and the new lender.
