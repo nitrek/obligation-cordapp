@@ -13,7 +13,7 @@ data class Obligation(val issuer: String,
                       val issueSize: Amount<Currency>,
                       val lender: AbstractParty,
                       val borrower: AbstractParty,
-                      val coBanker:String,
+                      val coBanker:ArrayList<Party>,
                       val issueName:String,
                       val status:String,
                       val paid: Amount<Currency> = Amount(0, issueSize.token),
@@ -25,7 +25,9 @@ data class Obligation(val issuer: String,
     fun withNewLender(newLender: AbstractParty) = copy(lender = newLender)
     fun withoutLender() = copy(lender = NullKeys.NULL_PARTY)
     fun updateStatus(newStatus:String) = copy(status = newStatus)
-
+    
+    fun updatecoBankers(coBankers:ArrayList<Party>) = copy(coBanker = coBankers)
+    
     override fun toString(): String {
         val lenderString = (lender as? Party)?.name?.organisation ?: lender.owningKey.toBase58String()
         val borrowerString = (borrower as? Party)?.name?.organisation ?: borrower.owningKey.toBase58String()

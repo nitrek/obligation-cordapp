@@ -10,6 +10,7 @@ import net.corda.examples.obligation.flows.OrderFlow
 import net.corda.examples.obligation.flows.SettleObligation
 import net.corda.examples.obligation.flows.TransferObligation
 import net.corda.finance.contracts.asset.Cash
+import net.corda.core.identity.Party
 import net.corda.finance.contracts.getCashBalances
 import net.corda.finance.flows.CashIssueFlow
 import java.util.*
@@ -88,7 +89,10 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
         // 1. Get party objects for the counterparty.
         val lenderIdentity = rpcOps.partiesFromName("Observer", exactMatch = false).singleOrNull()
                 ?: throw IllegalStateException("Couldn't lookup node identity for $party.")
-
+        val coBankerIdentity = rpcOps.partiesFromName(party, exactMatch = false).singleOrNull()
+                ?: throw IllegalStateException("Couldn't lookup node identity for $party.")
+        val coBankers = ArrayList<Party>()
+        coBankers.add(coBankerIdentity)
         // 2. Create an amount object.
         val issuestatus = "DRAFT"
         val currency = "USD"
@@ -104,6 +108,7 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
                     issuestatus,
                     party,
                     issuer,
+                    coBankers,
                     false
             )
 

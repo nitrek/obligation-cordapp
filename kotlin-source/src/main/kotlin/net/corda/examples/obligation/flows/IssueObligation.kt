@@ -24,6 +24,7 @@ object IssueObligation {
                     private val status:String,
                     private val coBanker:String,
                     private val issuer:String,
+                    private val coBankers: ArrayList<Party>,
                     private val anonymous: Boolean = true) : ObligationBaseFlow() {
 
         companion object {
