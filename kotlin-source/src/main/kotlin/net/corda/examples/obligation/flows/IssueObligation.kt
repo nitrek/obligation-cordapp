@@ -47,7 +47,7 @@ object IssueObligation {
         override fun call(): SignedTransaction {
             // Step 1. Initialisation.
             progressTracker.currentStep = INITIALISING
-            val obligation = Obligation(issuer,amount, lender, ourIdentity,coBanker,issueName,status)
+            val obligation = Obligation(issuer,amount, lender, ourIdentity,coBankers,issueName,status)
             val ourSigningKey = obligation.borrower.owningKey
 
             // Step 2. Building.
