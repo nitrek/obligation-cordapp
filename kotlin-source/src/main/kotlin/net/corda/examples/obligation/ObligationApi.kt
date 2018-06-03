@@ -90,47 +90,22 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
                         @QueryParam(value = "party") partyList: String,
                         @QueryParam(value = "issueName") issueName: String): Response {
         // 1. Get party objects for the counterparty.
-
-        val lenderList = ArrayList<Party>(5)
-        val transferpartyList = partyList.split(",".toRegex())
-
-        println(transferpartyList)
-
-        for(tParty:String in  transferpartyList )
-        {
-
-         //   val TransferpartyObject = CordaX500Name(tParty,"London","GB");
-           // println(TransferpartyObject)
-            val lenderIdentity = rpcOps.partiesFromName(tParty, exactMatch = false).singleOrNull()
-                    ?: throw IllegalStateException("Couldn't lookup node identity for $tParty.")
-
-       //     val lender = services.wellKnownPartyFromX500Name(TransferpartyObject)  ?: throw IllegalArgumentException("Unknown party name.")
-            lenderList.add(lenderIdentity)
-        }
-
-
-
-
-        val observerIdentity = rpcOps.partiesFromName("Observer", exactMatch = false).singleOrNull()
-                ?: throw IllegalStateException("Couldn't lookup node identity for Observer.")
-
-        lenderList.add(observerIdentity)
-        println(lenderList)
+        val lenderIdentity = rpcOps.partiesFromName("Observer", exactMatch = false).singleOrNull()
+                ?: throw IllegalStateException("Couldn't lookup node identity for $partyList.")
 
         // 2. Create an amount object.
         val issuestatus = "DRAFT"
         val currency = "USD"
         val issueAmount = Amount(issueSize.toLong() * 100, Currency.getInstance(currency))
-        
+
         // 3. Start the IssueObligation flow. We block and wait for the flow to return.
         val (status, message) = try {
             val flowHandle = rpcOps.startFlowDynamic(
                     IssueObligation.Initiator::class.java,
                     issueAmount,
-                    observerIdentity,
+                    lenderIdentity,
                     issueName,
                     issuestatus,
-                    lenderList,
                     partyList,
                     issuer,
                     false
@@ -143,8 +118,8 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
         }
 
         // 4. Return the result.
-        return Response.status(status).header("Access-Control-Allow-Origin", "*").header("Access-Control-Allow-Credentials", "true").header("Access-Control-Allow-Headers","origin, content-type, accept, authorization").header("Access-Control-Allow-Methods","GET, POST, PUT, DELETE, OPTIONS, HEAD").entity(message).build()    
-        }
+        return Response.status(status).header("Access-Control-Allow-Origin", "*").header("Access-Control-Allow-Credentials", "true").header("Access-Control-Allow-Headers","origin, content-type, accept, authorization").header("Access-Control-Allow-Methods","GET, POST, PUT, DELETE, OPTIONS, HEAD").entity(message).build()
+    }
     @GET
     @Path("createOrder")
     @Produces(MediaType.APPLICATION_JSON)
