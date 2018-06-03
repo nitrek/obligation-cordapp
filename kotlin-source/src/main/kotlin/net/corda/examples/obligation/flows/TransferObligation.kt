@@ -68,8 +68,8 @@ object TransferObligation {
 
             // Stage 4. Create the new obligation state reflecting a new lender.
             progressTracker.currentStep = BUILDING
-            val transferredObligation = createOutputObligation2(inputObligation)
-         //   val transferredObligation = createOutputObligation(transferredObligation2)
+            val transferredObligation2 = createOutputObligation2(inputObligation)
+            val transferredObligation = createOutputObligation(transferredObligation2)
 
             // Stage 4. Create the transfer command.
       //      val signers = inputObligation.participants + transferredObligation.lender
@@ -102,13 +102,12 @@ object TransferObligation {
             val stx = subFlow(CollectSignaturesFlow(
                     partiallySignedTx = ptx,
                     sessionsToCollectFrom = sessions,
-                    myOptionalKeys = listOf(inputObligation.lender.owningKey),
                     progressTracker = COLLECTING.childProgressTracker())
             )
 
             // Stage 10. Notarise and record, the transaction in our vaults. Send a copy to me as well.
             progressTracker.currentStep = FINALISING
-            return subFlow(FinalityFlow(stx, setOf(ourIdentity)))
+            return subFlow(FinalityFlow(stx, coBankers))
         }
 
         @Suspendable
@@ -120,17 +119,10 @@ object TransferObligation {
             }
         }
 
-//        @Suspendable
-//        private fun createOutputObligation(inputObligation: Obligation): Obligation {
-//            return if (anonymous) {
-//                // TODO: Is there a flow to get a key and cert only from the counterparty?
-//                val txKeys = subFlow(SwapIdentitiesFlow(coBankers))
-//                val anonymousLender = txKeys[coBankers] ?: throw FlowException("Couldn't get lender's conf. identity.")
-//                inputObligation.withNewLender(anonymousLender)
-//            } else {
-//                inputObligation.withNewLender(coBankers)
-//            }
-//        }
+       @Suspendable
+       private fun createOutputObligation(inputObligation: Obligation): Obligation {
+           return inputObligation.updateparticipants(coBankers)
+       }
         @Suspendable
         private fun createOutputObligation2(inputObligation: Obligation): Obligation {
             return inputObligation.updateStatus("Live")
