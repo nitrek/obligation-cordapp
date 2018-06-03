@@ -9,7 +9,8 @@ import net.corda.core.identity.Party
 import net.corda.core.utilities.toBase58String
 import java.util.*
 
-data class Obligation(val issueSize: Amount<Currency>,
+data class Obligation(val issuer: String,
+                      val issueSize: Amount<Currency>,
                       val lender: AbstractParty,
                       val borrower: AbstractParty,
                       val coBanker:String,

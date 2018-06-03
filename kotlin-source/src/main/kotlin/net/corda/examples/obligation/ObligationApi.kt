@@ -81,7 +81,8 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
     @GET
     @Path("createIssue")
     @Produces(MediaType.APPLICATION_JSON)
-    fun issueObligation(@QueryParam(value = "issueSize") issueSize: Int,
+    fun issueObligation(@QueryParam(value = "issuer") issuer: Int,
+                        @QueryParam(value = "issueSize") issueSize: Int,
                         @QueryParam(value = "party") party: String,
                         @QueryParam(value = "issueName") issueName: String): Response {
         // 1. Get party objects for the counterparty.
@@ -102,6 +103,7 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
                     issueName,
                     issuestatus,
                     party,
+                    issuer,
                     false
             )
 

@@ -23,6 +23,7 @@ object IssueObligation {
                     private val issueName:String,
                     private val status:String,
                     private val coBanker:String,
+                    private val issuer:String,
                     private val anonymous: Boolean = true) : ObligationBaseFlow() {
 
         companion object {
@@ -45,7 +46,7 @@ object IssueObligation {
         override fun call(): SignedTransaction {
             // Step 1. Initialisation.
             progressTracker.currentStep = INITIALISING
-            val obligation = Obligation(amount, lender, ourIdentity,coBanker,issueName,status)
+            val obligation = Obligation(issuer,amount, lender, ourIdentity,coBanker,issueName,status)
             val ourSigningKey = obligation.borrower.owningKey
 
             // Step 2. Building.
@@ -74,17 +75,17 @@ object IssueObligation {
             return subFlow(FinalityFlow(stx, FINALISING.childProgressTracker()))
         }
 
-        @Suspendable
-        private fun createAnonymousObligation(): Obligation {
-            val txKeys = subFlow(SwapIdentitiesFlow(lender))
+        // @Suspendable
+        // private fun createAnonymousObligation(): Obligation {
+        //     val txKeys = subFlow(SwapIdentitiesFlow(lender))
 
-            check(txKeys.size == 2) { "Something went wrong when generating confidential identities." }
+        //     check(txKeys.size == 2) { "Something went wrong when generating confidential identities." }
 
-            val anonymousMe = txKeys[ourIdentity] ?: throw FlowException("Couldn't create our conf. identity.")
-            val anonymousLender = txKeys[lender] ?: throw FlowException("Couldn't create lender's conf. identity.")
+        //     val anonymousMe = txKeys[ourIdentity] ?: throw FlowException("Couldn't create our conf. identity.")
+        //     val anonymousLender = txKeys[lender] ?: throw FlowException("Couldn't create lender's conf. identity.")
 
-            return Obligation(amount, anonymousLender, anonymousMe,"Observer","anon","invalid")
-        }
+        //     return Obligation(amount, anonymousLender, anonymousMe,"Observer","anon","invalid")
+        // }
     }
 
     @InitiatedBy(Initiator::class)
