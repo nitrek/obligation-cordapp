@@ -52,9 +52,9 @@ object TransferObligation {
 
             // Stage 2. This flow can only be initiated by the current recipient.
             val lenderIdentity = getLenderIdentity(inputObligation)
-
+            val borrower = getBorrowerIdentity(inputObligation)
             // Stage 3. Abort if the borrower started this flow.
-            check(ourIdentity == lenderIdentity) { "Obligation transfer can only be initiated by the lender." }
+            check(ourIdentity == borrower) { "Obligation transfer can only be initiated by the Lead Banker." }
 
             // Stage 4. Create the new obligation state reflecting a new lender.
             progressTracker.currentStep = BUILDING
@@ -79,7 +79,7 @@ object TransferObligation {
 
             // Stage 7. Get a Party object for the borrower.
             progressTracker.currentStep = SYNCING
-            val borrower = getBorrowerIdentity(inputObligation)
+            
 
             // Stage 8. Send any keys and certificates so the signers can verify each other's identity.
             // We call `toSet` in case the borrower and the new lender are the same party.
