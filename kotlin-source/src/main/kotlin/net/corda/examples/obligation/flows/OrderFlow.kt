@@ -21,7 +21,6 @@ object OrderFlow {
     @StartableByRPC
     class Initiator(private val amount: Amount<Currency>,
                     private val issueId:String,
-                    private val issueName:String,
                     private val status:String,
                     private val book:String,
                     private val country:String,

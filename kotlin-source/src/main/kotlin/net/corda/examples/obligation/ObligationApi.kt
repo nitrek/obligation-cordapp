@@ -123,7 +123,6 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
     @Produces(MediaType.APPLICATION_JSON)
     fun issueOrder(@QueryParam(value = "amount") amount: Int,
                         @QueryParam(value = "issueId") issueId: String,
-                        @QueryParam(value = "issueName") issueName: String,
                         @QueryParam(value = "investorName") investorName: String,
                         @QueryParam(value = "book") book: String,
                         @QueryParam(value = "orderId") orderId: String,
@@ -140,7 +139,6 @@ class ObligationApi(val rpcOps: CordaRPCOps) {
                     OrderFlow.Initiator::class.java,
                     issueAmount,
                     issueId,
-                    issueName,
                     status1,
                     book,
                     country,
