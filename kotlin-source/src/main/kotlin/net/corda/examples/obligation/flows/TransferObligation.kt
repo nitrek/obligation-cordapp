@@ -22,7 +22,7 @@ object TransferObligation {
     @InitiatingFlow
     class Initiator(private val linearId: UniqueIdentifier,
                     private val newLender: Party,
-                    private val anonymous: Boolean = true) : ObligationBaseFlow() {
+                    private val anonymous: Boolean = false) : ObligationBaseFlow() {
 
         override val progressTracker: ProgressTracker = tracker()
 
