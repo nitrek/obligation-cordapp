@@ -22,6 +22,7 @@ import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 import javax.ws.rs.core.Response.Status.BAD_REQUEST
 import javax.ws.rs.core.Response.Status.CREATED
+import kotlin.collections.ArrayList
 
 @Path("syncord")
 class ObligationApi(val rpcOps: CordaRPCOps) {

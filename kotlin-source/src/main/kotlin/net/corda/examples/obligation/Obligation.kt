@@ -8,6 +8,7 @@ import net.corda.core.identity.AbstractParty
 import net.corda.core.identity.Party
 import net.corda.core.utilities.toBase58String
 import java.util.*
+import kotlin.collections.ArrayList
 
 data class Obligation(val issuer: String,
                       val issueSize: Amount<Currency>,
