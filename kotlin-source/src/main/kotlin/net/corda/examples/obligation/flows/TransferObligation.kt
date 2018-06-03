@@ -101,7 +101,7 @@ object TransferObligation {
         }
 
         @Suspendable
-        private fun getLenderIdentity(inputObligation: Obligation): AbstractParty {
+        private fun getLenderIdentity(inputObligation: Obligation): Party {
             return if (inputObligation.lender is AnonymousParty) {
                 resolveIdentity(inputObligation.lender)
             } else {
