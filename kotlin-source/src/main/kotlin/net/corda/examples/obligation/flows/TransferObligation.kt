@@ -62,8 +62,8 @@ object TransferObligation {
             val transferredObligation = createOutputObligation(transferredObligation2)
 
             // Stage 4. Create the transfer command.
-            val signers = inputObligation.participants + transferredObligation.borrower
-            val signerKeys = signers.map { it.owningKey }
+            val signers = inputObligation.participants + transferredObligation.lender +  transferredObligation.borrower
+            val signerKeys = signers.toSet().map { it.owningKey }
             val transferCommand = Command(ObligationContract.Commands.Transfer(), signerKeys)
 
             // Stage 5. Create a transaction builder, then add the states and commands.
@@ -91,7 +91,7 @@ object TransferObligation {
             val stx = subFlow(CollectSignaturesFlow(
                     partiallySignedTx = ptx,
                     sessionsToCollectFrom = sessions,
-                    myOptionalKeys = listOf(inputObligation.lender.owningKey),
+                    myOptionalKeys = listOf(inputObligation.borrower.owningKey),
                     progressTracker = COLLECTING.childProgressTracker())
             )
 
