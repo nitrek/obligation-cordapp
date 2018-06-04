@@ -48,7 +48,7 @@ object OrderFlow {
             progressTracker.currentStep = INITIALISING
              val linearId = UniqueIdentifier.fromString(issueId)
             val obligation = getObligationByLinearId(linearId)
-            val order = Order(amount, obligation.state.data.lender, ourIdentity,issueId,obligation.state.data.issueName,investorName,status,book,country,orderId)
+            val order = Order(amount, if(ourIdentity != obligation.state.data.lender) obligation.state.data.lender else obligation.state.data.borrower , ourIdentity,issueId,obligation.state.data.issueName,investorName,status,book,country,orderId)
             val ourSigningKey = order.borrower.owningKey
 
             // Step 2. Building.
@@ -64,7 +64,7 @@ object OrderFlow {
 
             // Step 4. Get the counter-party signature.
             progressTracker.currentStep = COLLECTING
-            val lenderFlow = initiateFlow(obligation.state.data.lender as Party)
+            val lenderFlow = initiateFlow(if(ourIdentity != obligation.state.data.lender) obligation.state.data.lender as Party else obligation.state.data.borrower as Party)
             val stx = subFlow(CollectSignaturesFlow(
                     ptx,
                     setOf(lenderFlow),
